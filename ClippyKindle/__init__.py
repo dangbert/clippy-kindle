@@ -18,21 +18,34 @@ class ClippyKindle:
         print("parsing file: {}".format(fname))
         print("in parse")
 
-        lineNum = -1
+        allBooks = {} # dict mapping book title/author string to a Book object
+        lineNum = 0
         with open(fname, 'r') as fh:
             while True:
                 line = fh.readline().rstrip("\n")
+                # TODO: remove weird character from some lines...
                 lineNum += 1
-                #if line == "":
-                #    continue
+                if line == "":
+                    continue
 
                 print("line #{}: '{}'".format(lineNum, line))
+                bookId = line   # contains title and sometimes the author e.g. "The Iliad (Penguin Classics) (Homer)"
+                if bookId not in allBooks:
+                    # parse title into title / author
+                    title, author = bookId, None
+                    if bookId.endswith(')') and bookId.count(' (') >= 1:
+                        title = bookId[0 : bookId.rfind('(')-1].strip()
+                        author = bookId[bookId.rfind(" (")+2 : bookId.rfind(")")].strip()
+                    print("***** found: '{}' by '{}' *****".format(title, author))
+                    allBooks[bookId] = DataStructures.Book(title, author)
+
                 peek = self._peekLine(fh, 1)
                 #print("\t peek='{}'".format(peek))
-
-                title = line
                 if peek.startswith(HIGHLIGHT_START):
                     print("\t***IDENTIFIED: HIGHLIGHT")
+                    highlight = self._parseHighlight(fh)
+                    #allBooks[bookId] = 
+
                 elif peek.startswith(BOOKMARK_START):
                     print("\t***IDENTIFIED: BOOKMARK")
                 elif peek.startswith(NOTE_START):
@@ -43,7 +56,14 @@ class ClippyKindle:
                 if lineNum >=15:
                     break
 
-    def _parseHighlight(self):
+    # TODO: consider instead passing this a copy of the lines in the files belonging to this highlight
+    def _parseHighlight(self, fh):
+        """
+        Parse lines in file at current location until done advancing through the current highlight
+        Advances fh to the line immediately past this highlight
+
+        return: (DataStructures.Book) object or None (if error)
+        """
         pass
 
     # https://stackoverflow.com/a/16840747

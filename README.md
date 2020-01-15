@@ -1,12 +1,22 @@
 # ClippyKindle
 
-Under Development
+Under Development (this doesn't work yet)
 
+* Probably this program will parse a "My Clippings.txt" file and output it to a better format (json)
+* Then another program could convert the json file into markdown as desired
+
+### Usage:
+````bash
+virtualenv env
+source env/bin/activate
+pip3 install -r requirements.txt
+
+./clippy.py My\ Clippings.txt out/
+````
 
 ### Useful:
 ````bash
 pip3 freeze --local > requirements.txt
-
 ````
 
 ### Resources
