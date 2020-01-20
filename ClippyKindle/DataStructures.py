@@ -13,6 +13,9 @@ class Book:
         self.bookmarks = []  # array of Bookmark objects for this book
 
     def __repr__(self):
+        """
+        represents this object as a string when it's printed
+        """
         tmp = "=====Book Object=====\n"
         tmp += "title: '{}'\n".format(self.title)
         tmp += "author: '{}'\n".format(self.author)
@@ -45,8 +48,6 @@ class Book:
 
         pass
 
-    # TODO: add a toString type function
-
 class Highlight:
     """ 
     Data structure for storing info about a single highlight
@@ -56,6 +57,13 @@ class Highlight:
         self.locType = locType # str "page" or "Location" (note that a pdf has pages instead of locations)
         self.date = date       # date added
         self.content = content # content of highlight
+
+    def __repr__(self):
+        """
+        represents this object as a string when it's printed
+        """
+        return "<Highlight object representing: {} {}-{} from {}, content (preview): '{}'>"\
+                .format(self.locType, self.loc[0], self.loc[1], self.date, self.content[:20])
 
 
 class Note:
@@ -80,3 +88,9 @@ class Bookmark:
         self.loc = loc         # int location (page or location number)
         self.locType = locType # str "page" or "loc" (note that a pdf has pages instead of loc)
         self.date = date       # date added
+
+    def __repr__(self):
+        """
+        represents this object as a string when it's printed
+        """
+        return "<Bookmark object representing: {} {} from {}>".format(self.locType, self.loc, self.date)

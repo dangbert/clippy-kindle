@@ -103,18 +103,43 @@ class ClippyKindle:
 
             res = parse.parse("- Your Highlight on {} {}-{} | Added on {}", contentLines[1])
             if res == None:
-                return "ERROR: parse.parse failed on highlight"
+                # try again for rare case like "- Your Highlight on page 7 | Added on Sunday, May 6, 2018 1:42:40 AM"
+                res = parse.parse("- Your Highlight on {} {} | Added on {}", contentLines[1])
+                if res == None:
+                    return "ERROR: parse.parse failed on highlight"
+                res = [res[0], res[1], res[1], res[2]] # use page/loc number twice to match other format
             try:
                 date = parser.parse(res[3])
             except ValueError:
                 return "ERROR: unable to parse date '{}' in highlight".format(res[3])
-            allBooks[bookId].highlights.append(DataStructures.Highlight((res[1], res[2]), res[0], date, contentLines[2]))
-            #print('created book')
-            #print(allBooks[bookId])
+            highlight = DataStructures.Highlight((res[1], res[2]), res[0].lower(), date, contentLines[2])
+            #print("created: " + str(highlight))
+            allBooks[bookId].highlights.append(highlight)
+            #allBooks[bookId].highlights.append(DataStructures.Highlight((res[1], res[2]), res[0].lower(), date, contentLines[2]))
 
         elif contentLines[1].startswith(BOOKMARK_START) and len(contentLines) == 2:
-            #print("\t***IDENTIFIED: BOOKMARK***")
-            pass
+            # parse bookmark:
+            #   example format:
+            """
+            Do Androids Dream of Electric Sheep? (Dick, Philip K.)
+            - Your Bookmark on Location 604 | Added on Friday, November 25, 2016 12:13:59 AM
+            """
+            print("\t***IDENTIFIED: BOOKMARK***")
+            print(">>>section:")
+            for line in contentLines:
+                print("  '{}'".format(line))
+            print("<<<")
+
+            res = parse.parse("- Your Bookmark on {} {} | Added on {}", contentLines[1])
+            if res == None:
+                return "ERROR: parse.parse failed in bookmark"
+            try:
+                date = parser.parse(res[2])
+            except ValueError:
+                return "ERROR: unable to parse date '{}' in bookmark".format(res[3])
+
+            bookmark = DataStructures.Bookmark(res[1], res[0].lower(), date)
+            allBooks[bookId].bookmarks.append(bookmark)
         elif contentLines[1].startswith(NOTE_START) and len(contentLines) >= 3:
             # TODO: keep in mind that for notes, when a note is modified the earlier enty in "My Clippings.txt" is not deleted
             #     e.g. search for "my budget app" in the txt file
