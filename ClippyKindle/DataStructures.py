@@ -12,6 +12,31 @@ class Book:
         self.notes = []      # array of Note objects for this book
         self.bookmarks = []  # array of Bookmark objects for this book
 
+    def __repr__(self):
+        tmp = "=====Book Object=====\n"
+        tmp += "title: '{}'\n".format(self.title)
+        tmp += "author: '{}'\n".format(self.author)
+        tmp += "highlights:\t{} total\n".format(len(self.highlights))
+        tmp += "notes:\t\t{} total\n".format(len(self.notes))
+        tmp += "bookmarks:\t{} total\n".format(len(self.bookmarks))
+        tmp += "====================="
+        return tmp
+        #return """
+        #=====Book Object=====
+        #title: '{}', author: '{}'
+        #highlights:\t{} total
+        #notes:\t\t{} total
+        #bookmarks:\t{} total
+        #=====================
+        #""".format(self.title, self.author, len(self.highlights), len(self.notes), len(self.bookmarks))
+
+    def toJson(self):
+        """
+        convert this book object to json....
+        TODO: (is this the best place to do this / define this function?)
+        """
+        pass
+
     def sort(self):
         """
         sort the arrays self.hightlights, self.notes, self.bookmarks
@@ -28,7 +53,7 @@ class Highlight:
     """
     def __init__(self, loc, locType, date, content):
         self.loc = loc         # tuple (int locStart, int locEnd)
-        self.locType = locType # str "page" or "loc" (note that a pdf has pages instead of loc)
+        self.locType = locType # str "page" or "Location" (note that a pdf has pages instead of locations)
         self.date = date       # date added
         self.content = content # content of highlight
 

@@ -1,5 +1,6 @@
 import os
 import sys
+import parse
 
 from dateutil import parser
 from dateutil.relativedelta import *
@@ -28,20 +29,31 @@ class ClippyKindle:
                 line = line.rstrip("\n")
                 # TODO: remove weird character from some lines...
                 if line == "==========":
-                    self.parseSection(section, allBooks)
+                    res = self.parseSection(section, allBooks)
+                    if res != None:
+                        print(res)
+                        print("problem section in file (lines {} - {}) >>>".format(lineNum - len(section), lineNum))
+                        for line in section:
+                            print("  '{}'".format(line))
+                        print("<<<\n")
                     section = []
                 else:
                     # intentially includes empty lines as well (e.g. "") because some notes can intentionally contain an empty line
                     section.append(line)
-                #if lineNum >= 100: # TODO: for now
+                #if lineNum >= 101: # TODO: for now
                 #    break
 
             if len(section) != 0:
                 print("\n\nERROR: Unable to finsh parsing before hitting end of file")
-                print("  lines not parsed:")
+                print("section not parsed (at line {}) >>>".format(lineNum))
                 for line in section:
                     print("  '{}'".format(line))
+                print("<<<")
 
+        print("\n\nFinished parsing data from {} books!".format(len(allBooks)))
+        for bookId in allBooks: # TODO: for now (later just export to json and print some statistics...)
+            print()
+            print(allBooks[bookId])
 
     def parseSection(self, section, allBooks):
         """
@@ -51,7 +63,7 @@ class ClippyKindle:
             section (:type: list of str): lines in clippings file containing all the information about one particular highlight, note, or bookmark
             allBooks (dict): dict mapping each book's title/author string (e.g. "Fahrenheit 451: A Novel (Bradbury, Ray)") to a Book object
 
-        return: (DataStructures.Book) object or None (if error) (TODO correct this)
+        return: None if successful else returns str explaining error
         """
 
         # retreive just the lines in section that aren't empty
@@ -61,12 +73,7 @@ class ClippyKindle:
                 contentLines.append(line)
 
         if not len(contentLines) >= 2:
-            print("\n\nERROR: found section with an unexpected number of lines:)")
-            print(">>>section:")
-            for line in section:
-                print("  '{}'".format(line))
-            print("<<<")
-            return
+            return "ERROR: found section with an unexpected number of lines"
 
         # create book object in allBooks if not already existing for this book
         bookId = contentLines[0]
@@ -76,13 +83,35 @@ class ClippyKindle:
             if bookId.endswith(')') and bookId.count(' (') >= 1:
                 title = bookId[0 : bookId.rfind('(')-1].strip()
                 author = bookId[bookId.rfind(" (")+2 : bookId.rfind(")")].strip()
-            print("***** found: '{}' by '{}' *****".format(title, author))
+            #print("***** found: '{}' by '{}' *****".format(title, author))
             allBooks[bookId] = DataStructures.Book(title, author)
 
+        # parse.parse https://stackoverflow.com/a/18620969
         if contentLines[1].startswith(HIGHLIGHT_START) and len(contentLines) == 3:
+            # parse highlight:
+            #   example format:
+            """
+            Sinsajo (Suzanne Collins)
+            - Your Highlight on Location 4749-4749 | Added on Saturday, January 4, 2020 10:20:02 AM
+            me pongo en cuclillas
+            """
             #print("\t***IDENTIFIED: HIGHLIGHT***")
-            pass
-            #highlight = self._parseHighlight(fh)
+            #print(">>>section:")
+            #for line in contentLines:
+            #    print("  '{}'".format(line))
+            #print("<<<")
+
+            res = parse.parse("- Your Highlight on {} {}-{} | Added on {}", contentLines[1])
+            if res == None:
+                return "ERROR: parse.parse failed on highlight"
+            try:
+                date = parser.parse(res[3])
+            except ValueError:
+                return "ERROR: unable to parse date '{}' in highlight".format(res[3])
+            allBooks[bookId].highlights.append(DataStructures.Highlight((res[1], res[2]), res[0], date, contentLines[2]))
+            #print('created book')
+            #print(allBooks[bookId])
+
         elif contentLines[1].startswith(BOOKMARK_START) and len(contentLines) == 2:
             #print("\t***IDENTIFIED: BOOKMARK***")
             pass
@@ -92,7 +121,7 @@ class ClippyKindle:
             #print("\t***IDENTIFIED: NOTE***")
             pass
         else:
-            print("ERROR") # TODO:
+            return "ERROR: not sure how to parse section"
 
 
     # TODO: consider instead passing this a copy of the lines in the files belonging to this highlight
