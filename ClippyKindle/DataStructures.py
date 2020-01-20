@@ -33,6 +33,7 @@ class Book:
         #=====================
         #""".format(self.title, self.author, len(self.highlights), len(self.notes), len(self.bookmarks))
 
+    # TODO: also create toCSV(self)
     def toJson(self):
         """
         convert this book object to json....
@@ -45,6 +46,9 @@ class Book:
         sort the arrays self.hightlights, self.notes, self.bookmarks
         in order by (increasing) page/location within the book
         """
+
+        # TODO: keep in mind that for notes, when a note is modified the earlier enty in "My Clippings.txt" is not deleted
+        #     e.g. search for "my budget app" in the txt file
 
         pass
 
@@ -76,6 +80,14 @@ class Note:
         self.locType = locType # str "page" or "loc" (note that a pdf has pages instead of loc)
         self.date = date       # date added
         self.content = content # content of note
+
+    def __repr__(self):
+        """
+        represents this object as a string when it's printed
+        """
+        return "<Note object representing: {} {} from {}, content (preview): '{}'>"\
+                .format(self.locType, self.loc, self.date, self.content[:20])
+                #.format(self.locType, self.loc, self.date, self.content)
 
 
 class Bookmark:

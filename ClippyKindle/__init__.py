@@ -16,7 +16,13 @@ NOTE_START = "- Your Note on"
 class ClippyKindle:
 
     def parse(self, fname):
-        print("\nParsing file: {}\n".format(fname))
+        """
+        parses the notes/highlights/bookmarks stored in a kindle clippings txt file (printing any errors) and outputs the data to a json file
+
+        parameters:
+            fname (str): file path to txt file to parse (e.g. "My Clippings.txt")
+        """
+        print("\nParsing file: {}".format(fname))
 
         allBooks = {} # dict mapping book title/author string to a Book object
         lineNum = 0
@@ -40,8 +46,6 @@ class ClippyKindle:
                 else:
                     # intentially includes empty lines as well (e.g. "") because some notes can intentionally contain an empty line
                     section.append(line)
-                #if lineNum >= 101: # TODO: for now
-                #    break
 
             if len(section) != 0:
                 print("\n\nERROR: Unable to finsh parsing before hitting end of file")
@@ -50,17 +54,21 @@ class ClippyKindle:
                     print("  '{}'".format(line))
                 print("<<<")
 
-        print("\n\nFinished parsing data from {} books!".format(len(allBooks)))
+        print("\nFinished parsing data from {} books!".format(len(allBooks)))
         for bookId in allBooks: # TODO: for now (later just export to json and print some statistics...)
             print()
             print(allBooks[bookId])
 
+        # TODO: do some post-processing on each book (sorting/removing duplicates)
+        # TODO: convert allBooks to json and write to file...
+
     def parseSection(self, section, allBooks):
         """
-        Parse lines belonging to a section of the clippings file that pertains to a single Highlight/Note/Bookmark object
+        Parses lines belonging to a section of the clippings file that pertains to a single Highlight/Note/Bookmark object
+        Creates a Highlight, Note, or Bookmark object as needed and stores it in allBooks under its relevant book
 
         Parameters:
-            section (:type: list of str): lines in clippings file containing all the information about one particular highlight, note, or bookmark
+            section (:type: list of str): array of lines from a clippings file containing all the information pertaining to one particular highlight, note, or bookmark
             allBooks (dict): dict mapping each book's title/author string (e.g. "Fahrenheit 451: A Novel (Bradbury, Ray)") to a Book object
 
         return: None if successful else returns str explaining error
@@ -95,8 +103,8 @@ class ClippyKindle:
             - Your Highlight on Location 4749-4749 | Added on Saturday, January 4, 2020 10:20:02 AM
             me pongo en cuclillas
             """
-            #print("\t***IDENTIFIED: HIGHLIGHT***")
-            #print(">>>section:")
+            #print("\n\t***IDENTIFIED: HIGHLIGHT***")
+            #print("section: >>>")
             #for line in contentLines:
             #    print("  '{}'".format(line))
             #print("<<<")
@@ -110,12 +118,11 @@ class ClippyKindle:
                 res = [res[0], res[1], res[1], res[2]] # use page/loc number twice to match other format
             try:
                 date = parser.parse(res[3])
-            except ValueError:
-                return "ERROR: unable to parse date '{}' in highlight".format(res[3])
-            highlight = DataStructures.Highlight((res[1], res[2]), res[0].lower(), date, contentLines[2])
-            #print("created: " + str(highlight))
-            allBooks[bookId].highlights.append(highlight)
-            #allBooks[bookId].highlights.append(DataStructures.Highlight((res[1], res[2]), res[0].lower(), date, contentLines[2]))
+                highlight = DataStructures.Highlight((int(res[1]), int(res[2])), res[0].lower(), date, contentLines[2])
+                #print("created: " + str(highlight))
+                allBooks[bookId].highlights.append(highlight)
+            except ValueError:                  # due to date parsing or casting page/loc as an int
+                return "ERROR: unable to parse date or page/location in highlight"
 
         elif contentLines[1].startswith(BOOKMARK_START) and len(contentLines) == 2:
             # parse bookmark:
@@ -124,44 +131,63 @@ class ClippyKindle:
             Do Androids Dream of Electric Sheep? (Dick, Philip K.)
             - Your Bookmark on Location 604 | Added on Friday, November 25, 2016 12:13:59 AM
             """
-            print("\t***IDENTIFIED: BOOKMARK***")
-            print(">>>section:")
-            for line in contentLines:
-                print("  '{}'".format(line))
-            print("<<<")
+            #print("\n\t***IDENTIFIED: BOOKMARK***")
+            #print("section: >>>")
+            #for line in contentLines:
+            #    print("  '{}'".format(line))
+            #print("<<<")
 
             res = parse.parse("- Your Bookmark on {} {} | Added on {}", contentLines[1])
             if res == None:
                 return "ERROR: parse.parse failed in bookmark"
             try:
                 date = parser.parse(res[2])
+                bookmark = DataStructures.Bookmark(int(res[1]), res[0].lower(), date)
+                #print("created: " + str(bookmark))
+                allBooks[bookId].bookmarks.append(bookmark)
             except ValueError:
-                return "ERROR: unable to parse date '{}' in bookmark".format(res[3])
+                return "ERROR: unable to parse date or page/location in bookmark"
 
-            bookmark = DataStructures.Bookmark(res[1], res[0].lower(), date)
-            allBooks[bookId].bookmarks.append(bookmark)
         elif contentLines[1].startswith(NOTE_START) and len(contentLines) >= 3:
-            # TODO: keep in mind that for notes, when a note is modified the earlier enty in "My Clippings.txt" is not deleted
-            #     e.g. search for "my budget app" in the txt file
-            #print("\t***IDENTIFIED: NOTE***")
-            pass
+            # parse note:
+            #   example format:
+            """
+            Theogony  
+            - Your Note on page 1 | Added on Monday, September 11, 2017 10:56:38 PM
+
+            HW: Due Tues
+            Choose 3 elements or themes of the poem that you think are the most important, the most centeral to understanding what is going on in the poem.
+
+            Explain why you chose each element/theme.
+            Cite specific lines from the text to illustrate where you saw the elements/themes.
+            ==========
+            """
+            #print("\n\t***IDENTIFIED: NOTE***")
+            #print("section: >>>")
+            #for line in section:
+            #    print("  '{}'".format(line))
+            #print("<<<")
+
+            res = parse.parse("- Your Note on {} {} | Added on {}", contentLines[1])
+            if res == None:
+                return "ERROR: parse.parse failed in note"
+            try:
+                date = parser.parse(res[2])
+                content = section[2:] # get just the content lines of the note
+                # remove first and trailing empty lines if they exist (notes are always preceeded by an empty line)
+                content = content[1:] if content[0] == "" and len(content) > 1 else content
+                while len(content) > 1 and content[-1] == "":
+                    content = content[:-1]
+
+                note = DataStructures.Note(int(res[1]), res[0].lower(), date, '\n'.join(str(line) for line in content))
+                #print("created: " + str(note))
+                allBooks[bookId].notes.append(note)
+            except ValueError:
+                return "ERROR: unable to parse date or page/location in note"
+
         else:
             return "ERROR: not sure how to parse section"
 
-
-    # TODO: consider instead passing this a copy of the lines in the files belonging to this highlight
-    def _parseHighlight(self, fh):
-        """
-        Parse lines in file at current location until done advancing through the current highlight
-        Advances fh to the line immediately past this highlight
-
-        return: (DataStructures.Book) object or None (if error)
-        """
-
-        print("\n\nparsing highlight")
-
-        # 
-        pass
 
     # https://stackoverflow.com/a/16840747
     # TODO: check behaviour if we reach end of file
