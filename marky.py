@@ -13,11 +13,10 @@ import pytz
 import pprint
 
 def main():
-    # parse args
-
+    # parse args:
     parser = argparse.ArgumentParser(description='Parses a json file created by clippy.py and outputs a markdown file for each book')
     parser.add_argument('file_name', type=str, help='(string) path to json file created by clippy.py (e.g. "./out.json")')
-    # TODO: default to '.' as out_folder if not provided
+    # TODO: default to '.' as out_folder if not provided?
     parser.add_argument('out_folder', type=str, help='(string) path of folder to output parsed clippings')
     # (args starting with '--' are made optional)
 
@@ -26,23 +25,31 @@ def main():
         exit(1)
     args = parser.parse_args()
 
+    # read json from file:
     with open(args.file_name) as f:
         jsonData = json.load(f)
 
-
+    # convert json for each book to markdown and write to file:
     for bookData in jsonData:
-        markdownStr = jsonToMarkdown(bookData)
-        titleStr = bookData["title"]
-        titleStr += "" if bookData["author"] == None else " by {}".format(bookData["author"])
+        markdownStr = jsonToMarkdown(bookData)  # convert to markdown string
+        fname = bookData["title"]
+        fname += "" if bookData["author"] == None else " by {}".format(bookData["author"])
+        fname = fname.replace("/", "_") + ".md"
 
-        outPath = args.out_folder + "/" + titleStr.replace(" ", "-") + ".md"
+        outPath = args.out_folder + ("" if args.out_folder.endswith("/") else "/") + fname
         # TODO: check if file already exists
         with open(outPath, 'w') as out_file:
             out_file.write(markdownStr)
         print("created '{}'".format(outPath))
-        #return # for now just use first book
 
 def jsonToMarkdown(data):
+    """
+    parameters:
+        data (dict): dict holding data about a book
+
+    return:
+        (str) markdown representation of provided book data
+    """
     #pp = pprint.PrettyPrinter(indent=4)
     #pp.pprint(jsonData)
     md = ""

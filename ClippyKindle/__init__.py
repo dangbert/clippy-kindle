@@ -18,10 +18,13 @@ class ClippyKindle:
 
     def parse(self, fname):
         """
-        parses the notes/highlights/bookmarks stored in a kindle clippings txt file (printing any errors) and outputs the data to a json file
+        parses the notes/highlights/bookmarks stored in a kindle clippings txt file (printing any errors)
+        and returns the data as an array of dicts outputs the data to a json file
 
         parameters:
             fname (str): file path to txt file to parse (e.g. "My Clippings.txt")
+        return:
+            (:type listOfObjects: list<dict>) where each dict stores the data for a single book
         """
         print("\nParsing file: {}".format(fname))
 
@@ -36,7 +39,7 @@ class ClippyKindle:
                 line = line.rstrip("\n")
                 # TODO: remove weird character from some lines!!!
                 if line == "==========":
-                    res = self.parseSection(section, allBooks)
+                    res = self._parseSection(section, allBooks)
                     if res != None:
                         print(res)
                         print("problem section in file (lines {} - {}) >>>".format(lineNum - len(section), lineNum))
@@ -54,28 +57,16 @@ class ClippyKindle:
                 for line in section:
                     print("  '{}'".format(line))
                 print("<<<")
-
         print("\nFinished parsing data from {} books!".format(len(allBooks)))
-        #allBooks["The Heart Of The Buddha's Teaching Thich Nhat Hanh (Dr. Narinder Sharma)"].sort()
-        #allBooks["The 4 Hour Workweek"].sort()
-        target = "The 4 Hour Work"
-        #target = "Factfulness:"
-        outJson = []
-        for bookId in allBooks: # TODO: for now (later just export to json and print some statistics...)
-            #print()
-            #print(bookId)
-            if bookId.startswith(target):
-                allBooks[bookId].sort()
-                outJson.append(allBooks[bookId].toDict())
-            #print(allBooks[bookId])
-        with open('out.json', 'w') as f:
-            json.dump(outJson, f)
-        print("wrote data to out.json")
 
-        # TODO: do some post-processing on each book (sorting/removing duplicates)
-        # TODO: convert allBooks to json and write to file...
+        outData = []
+        for bookId in allBooks:
+            allBooks[bookId].sort() # do post-processing on book (sorting/removing duplicates)
+            outData.append(allBooks[bookId].toDict())
+        return outData
 
-    def parseSection(self, section, allBooks):
+
+    def _parseSection(self, section, allBooks):
         """
         Parses lines belonging to a section of the clippings file that pertains to a single Highlight/Note/Bookmark object
         Creates a Highlight, Note, or Bookmark object as needed and stores it in allBooks under its relevant book
