@@ -34,7 +34,7 @@ class ClippyKindle:
             for line in allLines:
                 lineNum += 1
                 line = line.rstrip("\n")
-                # TODO: remove weird character from some lines...
+                # TODO: remove weird character from some lines!!!
                 if line == "==========":
                     res = self.parseSection(section, allBooks)
                     if res != None:
@@ -66,12 +66,10 @@ class ClippyKindle:
             #print(bookId)
             if bookId.startswith(target):
                 allBooks[bookId].sort()
-                outJson.append(allBooks[bookId].toJson())
+                outJson.append(allBooks[bookId].toDict())
             #print(allBooks[bookId])
-        outJson = outJson[0] # for now
         with open('out.json', 'w') as f:
-            f.write(outJson)
-            #json.dump(outJson, json_file)
+            json.dump(outJson, f)
         print("wrote data to out.json")
 
         # TODO: do some post-processing on each book (sorting/removing duplicates)

@@ -1,5 +1,3 @@
-import json
-
 class Book:
     """ 
     Data structure for storing all highlights/notes/bookmarks for a given book
@@ -8,8 +6,8 @@ class Book:
         """
         Initialize a Book object
         """
-        self.title = title
-        self.author = author
+        self.title = title.strip()
+        self.author = None if author == None else author.strip()
         self.highlights = [] # array of Highlight objects for this book
         self.notes = []      # array of Note objects for this book
         self.bookmarks = []  # array of Bookmark objects for this book
@@ -28,35 +26,25 @@ class Book:
         return tmp
 
     # TODO: also create toCSV(self)
-    # TODO: perhaps make this toDict() and return a dict instead so it's easier to combine each book
-    #   into a json array of objects for each book
-    def toJson(self):
+    def toDict(self):
         """
-        convert this book object to json
-        TODO: (is this the best place to do this / define this function?)
+        convert this book object to a dict (which can be jsonified later)
         """
 
         items = self.highlights + self.notes + self.bookmarks
-        items = [json.loads(item.toJson()) for item in items]
-        print(items)
+        items = [item.toDict() for item in items]
+
         for item in items:
-            print("ITEM:")
             item["sortKey"] = item["loc"] + float("." + str(int(item["dateEpoch"])))
-            print(item)
-
-        # sort by loc first (for ties also sort by date added increasing)
-        #sortKeys = [item.loc + float("." + str(int(item.date.timestamp()))) for item in items]
-        #sortKeys = [item["loc"] + float("." + str(int(item["dateEpoch"]))) for item in items]
-        #print(sortKeys)
-        #items = [item for _, item in sorted(zip(sortKeys, items))]
-
         items.sort(key=lambda item: item["sortKey"]) # https://stackoverflow.com/a/403426
-        # TODO: don't include sortKey when returning the data...
+        # remove sortKeys:
+        for item in items:
+            item.pop("sortKey")
 
         data = {"title": self.title, "author": self.author,
                 "items": items}
                 #"items": [item.toJson() for item in items]}
-        return json.dumps(data)
+        return data
 
     def sort(self):
         """
@@ -69,21 +57,22 @@ class Book:
 
         # sort highlights
         # TODO:
-        #   sort by loc first (for ties also sort by date added increasing)
         #   if any highlights have the same loc and locEnd, then keep the one more recently edited
+        # TODO: find largest common substring between any highlights with overlapping range [loc, locEnd]
+
+        # sort by loc first (for ties also sort by date added increasing)
         sortKeys = [ h.loc + float("." + str(int(h.date.timestamp()))) for h in self.highlights]
-        print(sortKeys)
         # https://stackoverflow.com/a/6618543
         self.highlights = [h for _, h in sorted(zip(sortKeys, self.highlights))]
 
-        print("HIGHLIGHTS:")
-        for highlight in self.highlights:
-            print(highlight)
+        #print("HIGHLIGHTS:") # TODO: for debugging
+        #for highlight in self.highlights:
+        #    print(highlight)
 
-        # TODO: keep in mind that for notes, when a note is modified the earlier enty in "My Clippings.txt" is not deleted
+        # TODO: sort notes- keeping in mind that when a note is modified the earlier enty in "My Clippings.txt" is not deleted
         #     e.g. search for "my budget app" in the txt file
+        #     do similar largest common substring this as with the highlights
 
-        pass
 
 class Highlight:
     """ 
@@ -107,14 +96,14 @@ class Highlight:
                 .format(self.locType, self.loc, self.locEnd, self.date, self.content)
                 #.format(self.locType, self.loc[0], self.loc[1], self.date, self.content[:20])
 
-    def toJson(self):
+    def toDict(self):
         """
         Returns json representing this object
         """
         data = {"type": "highlight", "loc": self.loc, "locEnd": self.locEnd, "locType": self.locType,
                 "dateStr": self.date.strftime("%B %d, %Y %H:%M:%S"),
                 "dateEpoch": self.date.timestamp(), "content": self.content}
-        return json.dumps(data)
+        return data
 
 
 class Note:
@@ -136,14 +125,14 @@ class Note:
                 .format(self.locType, self.loc, self.date, self.content[:20])
                 #.format(self.locType, self.loc, self.date, self.content)
 
-    def toJson(self):
+    def toDict(self):
         """
         Returns json representing this object
         """
         data = {"type": "note", "loc": self.loc, "locType": self.locType,
                 "dateStr": self.date.strftime("%B %d, %Y %H:%M:%S"),
                 "dateEpoch": self.date.timestamp(), "content": self.content}
-        return json.dumps(data)
+        return data
 
 
 class Bookmark:
@@ -163,11 +152,11 @@ class Bookmark:
         """
         return "<Bookmark object representing: {} {} from {}>".format(self.locType, self.loc, self.date)
 
-    def toJson(self):
+    def toDict(self):
         """
-        Returns json representing this object
+        Returns dict representing this object
         """
         data = {"type": "bookmark", "loc": self.loc, "locType": self.locType,
                 "dateStr": self.date.strftime("%B %d, %Y %H:%M:%S"),
                 "dateEpoch": self.date.timestamp()}
-        return json.dumps(data)
+        return data

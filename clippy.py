@@ -24,6 +24,7 @@ def main():
     args = parser.parse_args()
 
     clippy = ClippyKindle()
+    # TODO: have this return the json so we can write it to a file here (and use args.out_folder)
     clippy.parse(args.file_name)
 
 
