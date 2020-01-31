@@ -5,6 +5,15 @@ Under Development (not finished yet)
 * This program will parse a "My Clippings.txt" file from a kindle and outputs it in a json format
 * Then another program could convert the json file into markdown as desired
 
+### Inherent Limitations with "My Clippings.txt":
+* deleting or undoing a highlight in the book doesn't delete it from "My Clippings.txt" :(
+* TODO: see if highlighting a section and selecting "note" creates both a note and a highlight for that text?
+* NOTE: I should accept these limitations, write the best parser I can and move on
+  * if the user has to manually delete stuff they don't care about from the final webpage that's okay)
+  * workflow should be that once the book is finished, the final generated markdown page can be edited and then never should need to be regenerated again...
+
+
+
 ### Usage:
 ````bash
 virtualenv env
@@ -12,6 +21,7 @@ source env/bin/activate
 pip3 install -r requirements.txt
 
 ./clippy.py My\ Clippings.txt out/
+./marky.py out.json
 ````
 * note: if you ever rename or move this folder, you have to delete/recreate the `env/` folder for it to work
 
@@ -35,3 +45,4 @@ pip3 freeze --local > requirements.txt
 * [fyodor - rccavalcanti](https://github.com/rccavalcanti/fyodor)
 * [kindle_note_parser - bfreskura](https://github.com/bfreskura/kindle_note_parser)
 * [kindle-highlight-parser - honza](https://github.com/honza/kindle-highlight-parser)
+

@@ -1,6 +1,7 @@
 import os
 import sys
 import parse
+import json
 
 from dateutil import parser
 from dateutil.relativedelta import *
@@ -55,9 +56,23 @@ class ClippyKindle:
                 print("<<<")
 
         print("\nFinished parsing data from {} books!".format(len(allBooks)))
+        #allBooks["The Heart Of The Buddha's Teaching Thich Nhat Hanh (Dr. Narinder Sharma)"].sort()
+        #allBooks["The 4 Hour Workweek"].sort()
+        target = "The 4 Hour Work"
+        #target = "Factfulness:"
+        outJson = []
         for bookId in allBooks: # TODO: for now (later just export to json and print some statistics...)
-            print()
-            print(allBooks[bookId])
+            #print()
+            #print(bookId)
+            if bookId.startswith(target):
+                allBooks[bookId].sort()
+                outJson.append(allBooks[bookId].toJson())
+            #print(allBooks[bookId])
+        outJson = outJson[0] # for now
+        with open('out.json', 'w') as f:
+            f.write(outJson)
+            #json.dump(outJson, json_file)
+        print("wrote data to out.json")
 
         # TODO: do some post-processing on each book (sorting/removing duplicates)
         # TODO: convert allBooks to json and write to file...
