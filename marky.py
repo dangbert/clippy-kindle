@@ -33,7 +33,7 @@ def main():
     for bookData in jsonData:
         markdownStr = jsonToMarkdown(bookData)  # convert to markdown string
         fname = bookData["title"]
-        fname += "" if bookData["author"] == None else " by {}".format(bookData["author"])
+        fname += "" if bookData["author"] == "" else " by {}".format(bookData["author"])
         fname = fname.replace("/", "|")
         outPath = args.out_folder + ("" if args.out_folder.endswith("/") else "/") + fname + ".md"
         # TODO: check if file already exists

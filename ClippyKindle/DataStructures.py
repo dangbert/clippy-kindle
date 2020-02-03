@@ -33,15 +33,9 @@ class Book:
         converts this book object to a dict (which can be jsonified later)
         return (dict): dict storing the data in this book
         """
-
         items = self.highlights + self.notes + self.bookmarks
         items = [item.toDict() for item in items]
-
-        for item in items:
-            item["sortKey"] = item["loc"] + float("." + str(int(item["dateEpoch"])))
-        items.sort(key=lambda item: item["sortKey"]) # https://stackoverflow.com/a/403426
-        for item in items: # remove sortKeys
-            item.pop("sortKey")
+        items = sortDictList(items)
 
         data = {"title": self.title, "author": self.author,
                 "items": items}
@@ -51,66 +45,46 @@ class Book:
         """
         sorts arrays self.highlights, self.notes, and self.bookmarks.  Each array is stored by
         (increasing) location in the book (ties are broken by the date recorded)
-        removes suspected duplicates within self.notes and self.highlights
-        the oldest item in each set of duplicates is the one preserved
-        (meaning it was the one last modified)
-
-        return: None
-        """
-        tmp = [item.toDict() for item in self.highlights]
-        self.highlights = [Highlight.fromDict(item) for item in tmp]
-
-        tmp = [item.toDict() for item in self.notes]
-        self.notes = [Note.fromDict(item) for item in tmp]
-
-        tmp = [item.toDict() for item in self.bookmarks]
-        self.bookmarks = [Bookmark.fromDict(item) for item in tmp]
-
-        pass
-        #print("\n\nsorting book: ")
-        #print(self)
-        # TODO: break this into separate functions (e.g. sortHighlights())
-
-        # TODO:
-        #   if any highlights have the same loc and locEnd, then keep the one more recently edited
-        # TODO: find largest common substring between any highlights with overlapping range [loc, locEnd]
-
-        # sort by loc first (for ties also sort by date added increasing)
-        #sortKeys = [ h.loc + float("." + str(int(h.date.timestamp()))) for h in self.highlights]
-        ## https://stackoverflow.com/a/6618543
-        #self.highlights = [h for _, h in sorted(zip(sortKeys, self.highlights))]
-
-        # sort highlights
-        #for item in self.highlights:
-        #    item["sortKey"] = item["loc"] + float("." + str(int(item["dateEpoch"])))
-        #self.highlights.sort(key=lambda item: item["sortKey"]) # https://stackoverflow.com/a/403426
-
-        ## TODO: sort notes- keeping in mind that when a note is modified the earlier enty in "My Clippings.txt" is not deleted
-        ##     e.g. search for "my budget app" in the txt file
-        ##     do similar largest common substring this as with the highlights
-        #for item in self.notes:
-        #    item["sortKey"] = item["loc"] + float("." + str(int(item["dateEpoch"])))
-        #self.notes.sort(key=lambda item: item["sortKey"]) # https://stackoverflow.com/a/403426
-
-        #print("HIGHLIGHTS:") # TODO: for debugging
-        #for highlight in self.highlights:
-        #    print(highlight)
-
-    @staticmethod
-    def _sortList(arr):
-        """
-        helper function for sorting a provided list of objects representing Hightlights/Notes/Bookmarks
-        in order by (increasing) page/location within the book (ties broken by date recorded)
+        optionally removes duplicates within each array
 
         parameters:
-            arr (list of dict objects): list of dicts that contain (at least) the fields "loc" and "dateEpoch"
-        return (list of dict objects): original array of dicts except now reordered
+            removeDups (bool): set True to remove suspected duplicates within self.notes,
+                               self.highlights, self.bookmarks. the oldest item in each set of
+                               duplicates is the one preserved (the one last modified)
+        return: None
         """
-        for item in arr:
-            item["sortKey"] = item["loc"] + float("." + str(int(item["dateEpoch"])))
-        arr.sort(key=lambda item: item["sortKey"]) # https://stackoverflow.com/a/403426
-        for item in arr: # remove sortKeys
-            item.pop("sortKey")
+        # sort self.highlights:
+        tmp = sortDictList([item.toDict() for item in self.highlights])
+        self.highlights = [Highlight.fromDict(item) for item in tmp]
+        # sort self.notes:
+        tmp = sortDictList([item.toDict() for item in self.notes])
+        self.notes = [Note.fromDict(item) for item in tmp]
+        # sort self.bookmarks:
+        tmp = sortDictList([item.toDict() for item in self.bookmarks])
+        self.bookmarks = [Bookmark.fromDict(item) for item in tmp]
+
+        # now remove duplicates from each list:
+        def removeDuplicates(objList):
+            """
+            removes duplicate objects in provided list of sorted objects
+            parameters:
+                objList (list): list of objects where each has method isDuplicate() defined
+            returns (list): modified list of provided objects (some possibly removed)
+            """
+            i = 0
+            while True:
+                if i >= len(objList)-2: # stop when i is at the second to last element
+                    break
+                # compare to bookmark i+1:
+                if objList[i].isDuplicate(objList[i+1]):
+                    print("deleting: " + str(objList[i]))
+                    del objList[i] # delete the older one (and don't advance i this loop)
+                else:
+                    i += 1 
+            return objList
+        self.highlights = removeDuplicates(self.highlights) # remove duplicate highlights
+        self.notes = removeDuplicates(self.notes)           # remove duplicate notes
+        self.bookmarks = removeDuplicates(self.bookmarks)   # remove duplicate bookmarks
 
 
 class Highlight:
@@ -140,6 +114,21 @@ class Highlight:
         return "<Highlight object representing: {} {}-{} from {}, content (preview): '{}'>"\
                 .format(self.locType, self.loc, self.locEnd, self.date, self.content)
                 #.format(self.locType, self.loc[0], self.loc[1], self.date, self.content[:20])
+
+    def isDuplicate(self, other, fuzzyMatch=True):
+        """
+        returns true if provided Highlight object can be considered a duplicate of this object
+
+        parameters:
+            other (Highlight): other Highlight object to compare this object to
+            fuzzyMatch (bool): true if we should consider Highlights with overlapping content (but
+                               not exactly the same) to be duplicates (default: True)
+        return (bool): true or false
+        """
+        # TODO: first check if loc are approximately the same before calculating the GCS
+        #sub = GCS(self.content, other.content)  # get longest common substring
+        return False # TODO: implement this
+
 
     def toDict(self):
         """
@@ -177,6 +166,20 @@ class Note:
         self.locType = locType # str "page" or "loc" (note that a pdf has pages instead of loc)
         self.date = date       # date added
         self.content = content # content of note
+
+    def isDuplicate(self, other, fuzzyMatch=True):
+        """
+        returns true if provided Note object can be considered a duplicate of this object
+
+        parameters:
+            other (Note): other Note object to compare this object to
+            fuzzyMatch (bool): true if we should consider Notes with overlapping content (but not
+                               exactly the same) to be duplicates (default: True)
+        return (bool): true or false
+        """
+        # TODO: first check if loc are approximately the same before calculating the GCS
+        #sub = GCS(self.content, other.content)  # get longest common substring
+        return False # TODO: implement this
 
     def __repr__(self):
         """
@@ -228,6 +231,16 @@ class Bookmark:
         """
         return "<Bookmark object representing: {} {} from {}>".format(self.locType, self.loc, self.date)
 
+    def isDuplicate(self, other):
+        """
+        returns true if provided Bookmark object can be considered a duplicate of this object
+
+        parameters:
+            other (Bookmark): other Bookmark object to compare this object to
+        return (bool): true or false
+        """
+        return self.loc == other.loc
+
     def toDict(self):
         """
         Returns dict representing this object
@@ -243,3 +256,42 @@ class Bookmark:
         Returns a new Bookmark object populated with the values from a provided dict (created with toDict())
         """
         return Bookmark(d["loc"], d["locType"], datetime.fromtimestamp(d["dateEpoch"]))
+
+
+##### helper methods: #####
+def sortDictList(arr):
+    """
+    helper function for sorting a list of objects (representing Hightlight/Note/Bookmark objects)
+    in order by (increasing) page/location within the book (ties broken by date recorded).
+
+    parameters:
+        arr (list of dict objects): list of dicts that contain (at least) the fields "loc" and "dateEpoch"
+                                    (these dicts should have created by a call of toDict())
+    return (list of dict objects): original list of dicts except now reordered
+    """
+    for item in arr:
+        item["sortKey"] = item["loc"] + float("." + str(int(item["dateEpoch"])))
+    arr.sort(key=lambda item: item["sortKey"]) # https://stackoverflow.com/a/403426
+    for item in arr: # remove sortKeys
+        item.pop("sortKey")
+    return arr
+
+def GCS(string1, string2):
+    """
+    returns the greatest (longest) common substring between two provided strings
+    (returns empty string if there is no overlap)
+    """
+    # this function copied directly from:
+    #   https://stackoverflow.com/a/42882629
+    answer = ""
+    len1, len2 = len(string1), len(string2)
+    for i in range(len1):
+        for j in range(len2):
+            lcs_temp=0
+            match=''
+            while ((i+lcs_temp < len1) and (j+lcs_temp<len2) and string1[i+lcs_temp] == string2[j+lcs_temp]):
+                match += string2[j+lcs_temp]
+                lcs_temp+=1
+            if (len(match) > len(answer)):
+                answer = match
+    return answer
