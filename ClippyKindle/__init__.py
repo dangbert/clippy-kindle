@@ -19,17 +19,18 @@ class ClippyKindle:
     def parse(self, fname):
         """
         parses the notes/highlights/bookmarks stored in a kindle clippings txt file (printing any errors)
-        and returns the data as an array of dicts outputs the data to a json file
+        and returns the data as an array of dicts (each dict representing the data from one book).
 
         parameters:
             fname (str): file path to txt file to parse (e.g. "My Clippings.txt")
         return:
             (:type listOfObjects: list<dict>) where each dict stores the data for a single book
         """
-        print("\nParsing file: {}".format(fname))
+        print("\nParsing file: '{}'".format(fname))
 
         allBooks = {} # dict mapping book title/author string to a Book object
         lineNum = 0
+        numErrors = 0
         with open(fname, 'r') as fh:
             allLines = fh.readlines()
             section = []
@@ -41,6 +42,7 @@ class ClippyKindle:
                 if line == "==========":
                     res = self._parseSection(section, allBooks)
                     if res != None:
+                        numErrors += 1
                         print(res)
                         print("problem section in file (lines {} - {}) >>>".format(lineNum - len(section), lineNum))
                         for line in section:
@@ -52,16 +54,22 @@ class ClippyKindle:
                     section.append(line)
 
             if len(section) != 0:
+                numErrors += 1
                 print("\n\nERROR: Unable to finsh parsing before hitting end of file")
                 print("section not parsed (at line {}) >>>".format(lineNum))
                 for line in section:
                     print("  '{}'".format(line))
                 print("<<<")
         print("\nFinished parsing data from {} books!".format(len(allBooks)))
+        if numErrors != 0 and input("{} error(s) parsing input file. Continue anyway (y/n)? "\
+                .format(numErrors)).lower().strip() in ('n','no'):
+            print("Aborting...")
+            print("Feel free to report any issues with parsing your 'My Clippings.txt' file here: https://github.com/dangbert/clippy-kindle/issues/new")
+            exit(1)
 
         outData = []
         for bookId in allBooks:
-            allBooks[bookId].sort() # do post-processing on book (sorting/removing duplicates)
+            allBooks[bookId].sort(removeDups=True) # do post-processing on book (sorting/removing duplicates)
             outData.append(allBooks[bookId].toDict())
         return outData
 
@@ -83,7 +91,6 @@ class ClippyKindle:
         for line in section:
             if line != "":
                 contentLines.append(line)
-
         if not len(contentLines) >= 2:
             return "ERROR: found section with an unexpected number of lines"
 
@@ -107,12 +114,6 @@ class ClippyKindle:
             - Your Highlight on Location 4749-4749 | Added on Saturday, January 4, 2020 10:20:02 AM
             me pongo en cuclillas
             """
-            #print("\n\t***IDENTIFIED: HIGHLIGHT***")
-            #print("section: >>>")
-            #for line in contentLines:
-            #    print("  '{}'".format(line))
-            #print("<<<")
-
             res = parse.parse("- Your Highlight on {} {}-{} | Added on {}", contentLines[1])
             if res == None:
                 # try again for rare case like "- Your Highlight on page 7 | Added on Sunday, May 6, 2018 1:42:40 AM"
@@ -135,12 +136,6 @@ class ClippyKindle:
             Do Androids Dream of Electric Sheep? (Dick, Philip K.)
             - Your Bookmark on Location 604 | Added on Friday, November 25, 2016 12:13:59 AM
             """
-            #print("\n\t***IDENTIFIED: BOOKMARK***")
-            #print("section: >>>")
-            #for line in contentLines:
-            #    print("  '{}'".format(line))
-            #print("<<<")
-
             res = parse.parse("- Your Bookmark on {} {} | Added on {}", contentLines[1])
             if res == None:
                 return "ERROR: parse.parse failed in bookmark"
@@ -166,12 +161,6 @@ class ClippyKindle:
             Cite specific lines from the text to illustrate where you saw the elements/themes.
             ==========
             """
-            #print("\n\t***IDENTIFIED: NOTE***")
-            #print("section: >>>")
-            #for line in section:
-            #    print("  '{}'".format(line))
-            #print("<<<")
-
             res = parse.parse("- Your Note on {} {} | Added on {}", contentLines[1])
             if res == None:
                 return "ERROR: parse.parse failed in note"
@@ -191,23 +180,3 @@ class ClippyKindle:
 
         else:
             return "ERROR: not sure how to parse section"
-
-
-    # https://stackoverflow.com/a/16840747
-    # TODO: check behaviour if we reach end of file
-    # (note that any changes made to the file handler here persist after the function is called)
-    def _peekLine(self, f, lineOffset=1):
-        """
-        get the value lineOffset lines ahead (without advancing the file f)
-
-        """
-        if lineOffset <= 0:
-            return None
-        pos = f.tell()
-        for i in range(lineOffset):
-            line = f.readline()
-            if not line:
-                line = None
-                break
-        f.seek(pos)
-        return line.rstrip("\n")

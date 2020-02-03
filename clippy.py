@@ -31,7 +31,7 @@ def main():
     # convert data to json and write to file:
     outPath = args.out_folder + ("" if args.out_folder.endswith("/") else "/") + "out.json"
     with open(outPath, 'w') as f:
-        json.dump(outData, f)
+        json.dump(outData, f, indent=2) # write indented json to file
     print("\nwrote parsed data to '{}'".format(outPath))
 
 
