@@ -190,9 +190,22 @@ class Note:
                                exactly the same) to be duplicates (default: True)
         return (bool): true or false
         """
-        # TODO: first check if loc are approximately the same before calculating the GCS
-        #sub = GCS(self.content, other.content)  # get longest common substring
-        return False # TODO: implement this
+        # duplicate notes will have the exact the same location
+        # (but remember that nearby (potentially noted) words in ebook can have the same location)
+        if self.loc == other.loc:
+            if self.content in other.content or other.content in self.content:
+                return True
+            thisWords, otherWords = self.content.count(" "), other.content.count(" ")
+            if thisWords < 6: # speed things up bc we check this later
+                return False
+
+            sub = GCS(self.content, other.content).strip()  # get longest common substring
+            subWords = sub.count(" ")
+            # err on the side of false negatives
+            if thisWords >= 6 and len(sub)/len(self.content) >= 0.5:
+                # (self.content is a decent length and over half of it is identical to other.content)
+                return True
+        return False
 
     def __repr__(self):
         """
