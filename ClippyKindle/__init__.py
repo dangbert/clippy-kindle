@@ -68,8 +68,11 @@ class ClippyKindle:
             exit(1)
 
         outData = []
+        removeDups = True # TODO: make this a cmd flag
+        if removeDups:
+            print("\nRemoving duplicates (this may take a few minutes)...")
         for bookId in allBooks:
-            allBooks[bookId].sort(removeDups=True) # do post-processing on book (sorting/removing duplicates)
+            allBooks[bookId].sort(removeDups) # do post-processing on book (sorting/removing duplicates)
             outData.append(allBooks[bookId].toDict())
         return outData
 

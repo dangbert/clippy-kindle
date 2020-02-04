@@ -63,6 +63,8 @@ class Book:
         tmp = sortDictList([item.toDict() for item in self.bookmarks])
         self.bookmarks = [Bookmark.fromDict(item) for item in tmp]
 
+        if not removeDups:
+            return
         # now remove duplicates from each list:
         def removeDuplicates(objList):
             """
@@ -77,7 +79,7 @@ class Book:
                     break
                 # compare to bookmark i+1:
                 if objList[i].isDuplicate(objList[i+1]):
-                    print("deleting: " + str(objList[i]))
+                    #print("deleting: " + str(objList[i]))
                     del objList[i] # delete the older one (and don't advance i this loop)
                 else:
                     i += 1 
@@ -105,7 +107,7 @@ class Highlight:
         self.locEnd = loc[1]
         self.locType = locType # str "page" or "Location" (note that a pdf has pages instead of locations)
         self.date = date       # date added
-        self.content = content # content of highlight
+        self.content = content.strip() # content of highlight
 
     def __repr__(self):
         """
@@ -125,10 +127,21 @@ class Highlight:
                                not exactly the same) to be duplicates (default: True)
         return (bool): true or false
         """
-        # TODO: first check if loc are approximately the same before calculating the GCS
-        #sub = GCS(self.content, other.content)  # get longest common substring
-        return False # TODO: implement this
+        # duplicates will have similar locations
+        if abs(self.loc - other.loc) <= (1 if self.locType == "page" else 10):
+            if self.content in other.content or other.content in self.content:
+                return True
+            thisWords, otherWords = self.content.count(" "), other.content.count(" ")
+            if thisWords < 5: # speed things up bc we check this later
+                return False
 
+            sub = GCS(self.content, other.content).strip()  # get longest common substring
+            subWords = sub.count(" ")
+            # err on the side of false negatives
+            if thisWords >= 5 and len(sub)/len(self.content) >= 0.5:
+                # (self.content is a decent length and over half of it is identical to other.content)
+                return True
+        return False
 
     def toDict(self):
         """
@@ -165,7 +178,7 @@ class Note:
         self.loc = loc         # int location (page or location number)
         self.locType = locType # str "page" or "loc" (note that a pdf has pages instead of loc)
         self.date = date       # date added
-        self.content = content # content of note
+        self.content = content.strip() # content of note
 
     def isDuplicate(self, other, fuzzyMatch=True):
         """
