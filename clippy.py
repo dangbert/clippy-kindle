@@ -4,6 +4,7 @@ import os
 import sys
 import argparse
 import json
+import csv
 
 from dateutil import parser
 from dateutil.relativedelta import *
@@ -26,13 +27,41 @@ def main():
 
     # parse file:
     clippy = ClippyKindle()
-    outData = clippy.parse(args.file_name)
+    # TODO: some stuff printed in clippy.parse could be printed here instead
+    #       (maybe it should just print errors)...
+    bookList = clippy.parse(args.file_name)
 
-    # convert data to json and write to file:
-    outPath = args.out_folder + ("" if args.out_folder.endswith("/") else "/") + "out.json"
-    with open(outPath, 'w') as f:
-        json.dump(outData, f, indent=2) # write indented json to file
-    print("\nwrote parsed data to '{}'".format(outPath))
+    # sort / remove duplicates:
+    removeDups = True # TODO: make this a cmd flag
+    writeJson  = True # TODO ^
+    writeCSV   = True # TODO ^
+    if removeDups:
+        print("\nRemoving duplicates (this may take a few minutes)...")
+
+    #bookList = [book.sort(removeDups=removeDups) for book in BookList]
+    outPath = args.out_folder + ("" if args.out_folder.endswith("/") else "/")
+    if writeJson:
+        # write data from all books to a single json file:
+        outData = []
+        for book in bookList:
+            # do post-processing on book (sorting/removing duplicates)
+            book.sort(removeDups=removeDups)
+            outData.append(book.toDict())
+
+        # convert data to json and write to file:
+        outPathJson = outPath + "out.json"
+        with open(outPathJson, 'w') as f:
+            json.dump(outData, f, indent=2) # write indented json to file
+            print("\ndumped all parsed data to: '{}'".format(outPathJson))
+
+    for book in bookList:
+        if writeCSV:
+            # convert data to CSV and write to file:
+            fname = book.getName().replace("/", "|")
+            outPathCSV = "{}{}.csv".format(outPath, fname)
+            with open(outPathCSV, 'w') as f:
+                csv.writer(f).writerows(book.toCSV())
+            print("created: '{}'".format(outPathCSV))
 
 
 if __name__ == "__main__":

@@ -15,7 +15,7 @@ import pprint
 def main():
     # parse args:
     parser = argparse.ArgumentParser(description='Parses a json file created by clippy.py and outputs a markdown file for each book')
-    parser.add_argument('file_name', type=str, help='(string) path to json file created by clippy.py (e.g. "./out.json")')
+    parser.add_argument('json_file', type=str, help='(string) path to json file created by clippy.py (e.g. "./out.json")')
     # TODO: default to '.' as out_folder if not provided?
     parser.add_argument('out_folder', type=str, help='(string) path of folder to output parsed clippings')
     # (args starting with '--' are made optional)
@@ -26,7 +26,7 @@ def main():
     args = parser.parse_args()
 
     # read json from file:
-    with open(args.file_name) as f:
+    with open(args.json_file) as f:
         jsonData = json.load(f)
 
     # convert json for each book to markdown and write to file:
@@ -36,8 +36,8 @@ def main():
         fname += "" if bookData["author"] == "" else " by {}".format(bookData["author"])
         fname = fname.replace("/", "|")
         outPath = args.out_folder + ("" if args.out_folder.endswith("/") else "/") + fname + ".md"
-        # TODO: check if file already exists
 
+        # TODO: check if file already exists
         with open(outPath, 'w') as out_file:
             out_file.write(markdownStr)
         print("created '{}'".format(outPath))

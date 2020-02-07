@@ -4,12 +4,12 @@ class Book:
     """ 
     Data structure for storing all highlights/notes/bookmarks for a given book
     """
-    def __init__(self, title, author=None):
+    def __init__(self, title, author=""):
         """
         Initialize a Book object
         """
         self.title = title.strip()
-        self.author = None if author == None else author.strip()
+        self.author = author.strip()
         self.highlights = [] # array of Highlight objects for this book
         self.notes = []      # array of Note objects for this book
         self.bookmarks = []  # array of Bookmark objects for this book
@@ -27,19 +27,71 @@ class Book:
         tmp += "====================="
         return tmp
 
-    # TODO: also create toCSV(self)
+    def getName(self):
+        """
+        returns a string containing the book's title and author (if known)
+        e.g. "How to Live on 24 Hours a Day by Arnold Bennett.md"
+        """
+        fullName = self.title
+        return fullName + ("" if self.author == "" else " by {}".format(self.author))
+
+    def cut(self, date):
+        """
+        removes all data in Book object that was modified on or before provided timestamp
+        parameters:
+            date (datetime.datetime): cutoff date for preserving data in this bug
+        return (dict): dict storing the data in this book
+        """
+        self.sort(removeDups=False)
+        # TODO: implement cut()
+
     def toDict(self):
         """
         converts this book object to a dict (which can be jsonified later)
         return (dict): dict storing the data in this book
         """
         items = self.highlights + self.notes + self.bookmarks
-        items = [item.toDict() for item in items]
-        items = sortDictList(items)
-
-        data = {"title": self.title, "author": self.author,
-                "items": items}
+        items = sortDictList([item.toDict() for item in items])
+        data = {"title": self.title, "author": self.author, "items": items}
         return data
+
+    def toCSV(self, includeDates=False):
+        """
+        converts this book object to a CSV file (columns sorted by location in book increasing)
+        parameters:
+            includeDates (bool): True if an additonal date (modified) column is desired
+                for the highlights/notes/bookmarks
+        return (list of lists): array of lists representing each row (can be written to csv file later)
+        """
+        #items = self.highlights + self.notes + self.bookmarks
+        #items = [item.toDict() for item in items]
+        #locType = "loc" if len(items) == 0 else items[0]["locType"] # in case we want to change the column names
+
+        self.sort(removeDups=False) # in case user didn't sort first
+        csvRows = [["highlight", "highlight_loc", "highlight_loc_end", "note", "note_loc", "bookmark_loc"]]
+        includeDates = False # TODO: implement support for this
+        for i in range(0, max(len(self.highlights), len(self.notes), len(self.bookmarks))):
+            curRow = []
+            if i < len(self.highlights):
+                curRow += [self.highlights[i].content, self.highlights[i].loc, self.highlights[i].locEnd]
+                curRow += "" if not includeDates else [self.highlights[i].dateStr] 
+            else:
+                curRow += ["", "", ""]
+                curRow += "" if not includeDates else [self.highlights[i].dateStr] 
+            if i < len(self.notes):
+                curRow += [self.notes[i].content, self.notes[i].loc]
+                curRow += "" if not includeDates else [self.notes[i].dateStr] 
+            else:
+                curRow += ["", ""]
+                curRow += "" if not includeDates else [self.notes[i].dateStr] 
+            if i < len(self.bookmarks):
+                curRow += [self.bookmarks[i].loc]
+                curRow += "" if not includeDates else [self.bookmarks[i].dateStr] 
+            else:
+                curRow += [""]
+                curRow += "" if not includeDates else [self.bookmarks[i].dateStr] 
+            csvRows.append(curRow)
+        return csvRows
 
     def sort(self, removeDups):
         """
@@ -66,6 +118,8 @@ class Book:
         if not removeDups:
             return
         # now remove duplicates from each list:
+        # TODO: store the set of each removed element in a separate json file (along with the final preserved "duplicate")
+        #  randomly sample this file to check for false ?positives?
         def removeDuplicates(objList):
             """
             removes duplicate objects in provided list of sorted objects

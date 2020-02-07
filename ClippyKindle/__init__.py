@@ -15,18 +15,34 @@ BOOKMARK_START = "- Your Bookmark on"
 NOTE_START = "- Your Note on"
 
 class ClippyKindle:
+    """
+    Does the work of parsing a "My Clippings.txt" file
+    (using classes from ClippyKindle.DataStructures for storage)
+    """
 
-    def parse(self, fname):
+    def parse(self, fname, verbose=False):
         """
         parses the notes/highlights/bookmarks stored in a kindle clippings txt file (printing any errors)
         and returns the data as an array of dicts (each dict representing the data from one book).
 
         parameters:
             fname (str): file path to txt file to parse (e.g. "My Clippings.txt")
+            # TODO: use verbose param with options 0 (print nothing), 1 (print everything), and 2 (print errors only)
         return:
-            (:type listOfObjects: list<dict>) where each dict stores the data for a single book
+            (:type listOfObjects: DataStructures.Book) list of Book objects
         """
         print("\nParsing file: '{}'".format(fname))
+
+        def printHelper(msg, isError=False):
+            """
+            helper function for printing
+            parameters:
+                msg (str): message to print
+                level (bool): True if msg is an error message, False otherwise
+            """
+            # TODO: implement
+            # TODO: consider actually printing errors to stderr
+            pass
 
         allBooks = {} # dict mapping book title/author string to a Book object
         lineNum = 0
@@ -67,15 +83,11 @@ class ClippyKindle:
             print("Feel free to report any issues with parsing your 'My Clippings.txt' file here: https://github.com/dangbert/clippy-kindle/issues/new")
             exit(1)
 
-        outData = []
-        removeDups = True # TODO: make this a cmd flag
-        if removeDups:
-            print("\nRemoving duplicates (this may take a few minutes)...")
+        outData = [] # list of Book objects
+        # TODO: should this be appending bookId instead?:
         for bookId in allBooks:
-            allBooks[bookId].sort(removeDups) # do post-processing on book (sorting/removing duplicates)
-            outData.append(allBooks[bookId].toDict())
+            outData.append(allBooks[bookId])
         return outData
-
 
     def _parseSection(self, section, allBooks):
         """
@@ -101,7 +113,7 @@ class ClippyKindle:
         bookId = contentLines[0]
         if bookId not in allBooks:
             # parse title into title / author
-            title, author = bookId, None
+            title, author = bookId, ""
             if bookId.endswith(')') and bookId.count(' (') >= 1:
                 title = bookId[0 : bookId.rfind('(')-1].strip()
                 author = bookId[bookId.rfind(" (")+2 : bookId.rfind(")")].strip()
