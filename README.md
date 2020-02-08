@@ -10,10 +10,11 @@ source env/bin/activate
 pip3 install -r requirements.txt
 
 mkdir -p out
-./clippy.py "My Clippings.txt" out/  # parse clippings and store in json file
-./marky.py out/out.json              # convert json file to markdown file(s)
+# parse clippings and store in json file 'collection.json':
+#   also defaults to outputting a .md and .csv file for each book found in "My Clippings.txt"
+./clippy.py "My Clippings.txt" out/
 ````
-* NOTE: To customize the format of the outputted markdown files simply edit the function `jsonToMarkdown()` in `clippy.py`.
+* NOTE: To customize the format of the outputted markdown files simply edit the function `jsonToMarkdown()` in `marky.py`.
 * note: if you ever rename or move this folder, you have to delete/recreate the `env/` folder for it to work
 
 ### Having Issues?
@@ -24,16 +25,16 @@ mkdir -p out
 ---
 ### Inherent Limitations with "My Clippings.txt":
 * deleting or undoing a highlight in the book doesn't delete it from "My Clippings.txt" :(
+  * However clippy.py will automatically detect and remove duplicate highlights, notes, and bookmarks
 * TODO: see if highlighting a section and selecting "note" creates both a note and a highlight for that text?
-* NOTE: I should accept these limitations, write the best parser I can and move on
-  * if the user has to manually delete stuff they don't care about from the final webpage that's okay)
-  * workflow should be that once the book is finished, the final generated markdown page can be edited and then never should need to be regenerated again...
-
 ---
 ### Resources:
 * see "Google Books" section of [this](https://medium.com/@sawyerh/how-i-export-process-and-resurface-my-kindle-highlights-addc9de9af1a) for info on automating the download of the book's cover, etc...
 
-### Programs I tried that didn't work for me personally:
+### Why I made this?
+I tried several programs made by others but they had issues parsing my kindle's "My Clippings.txt" file so I made my own.  Also I wanted to have more control of the removal of duplicates and formatting of the outputted markdown file.
+
+Programs I tried that didn't work for me personally:
 * [fyodor - rccavalcanti](https://github.com/rccavalcanti/fyodor)
 * [kindle_note_parser - bfreskura](https://github.com/bfreskura/kindle_note_parser)
 * [kindle-highlight-parser - honza](https://github.com/honza/kindle-highlight-parser)

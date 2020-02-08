@@ -35,15 +35,19 @@ class Book:
         fullName = self.title
         return fullName + ("" if self.author == "" else " by {}".format(self.author))
 
-    def cut(self, date):
+    def cut(self, cutDate):
         """
         removes all data in Book object that was modified on or before provided timestamp
         parameters:
-            date (datetime.datetime): cutoff date for preserving data in this bug
+            cutDate (datetime.datetime): cutoff date for preserving data in this Book
         return (dict): dict storing the data in this book
         """
-        self.sort(removeDups=False)
-        # TODO: implement cut()
+        tmp = self.highlights
+        self.highlights = [obj for obj in tmp if obj.date.timestamp() > cutDate.timestamp()]
+        tmp = self.notes
+        self.notes = [obj for obj in tmp if obj.date.timestamp() > cutDate.timestamp()]
+        tmp = self.bookmarks
+        self.bookmarks = [obj for obj in tmp if obj.date.timestamp() > cutDate.timestamp()]
 
     def toDict(self):
         """
@@ -55,41 +59,44 @@ class Book:
         data = {"title": self.title, "author": self.author, "items": items}
         return data
 
-    def toCSV(self, includeDates=False):
+    def toCSV(self):
         """
         converts this book object to a CSV file (columns sorted by location in book increasing)
-        parameters:
-            includeDates (bool): True if an additonal date (modified) column is desired
-                for the highlights/notes/bookmarks
         return (list of lists): array of lists representing each row (can be written to csv file later)
         """
         #items = self.highlights + self.notes + self.bookmarks
         #items = [item.toDict() for item in items]
         #locType = "loc" if len(items) == 0 else items[0]["locType"] # in case we want to change the column names
 
+        # TODO: add support for placing notes next to their associated highlights as an extra column...
         self.sort(removeDups=False) # in case user didn't sort first
-        csvRows = [["highlight", "highlight_loc", "highlight_loc_end", "note", "note_loc", "bookmark_loc"]]
-        includeDates = False # TODO: implement support for this
+        csvRows = [["highlight", "associated_note", "highlight_loc", "highlight_loc_end", "note", "note_loc", "bookmark_loc"]]
+        # TODO: get associated_note field to work(see "Outskirts" in Sinsajo) /test it
+
+        nIdx = 0 # running associated note index (for matching highlights with an overlapping note)
+        usedNotes = {} # dict containing the values of nIdx already associated with a highlight
         for i in range(0, max(len(self.highlights), len(self.notes), len(self.bookmarks))):
             curRow = []
             if i < len(self.highlights):
-                curRow += [self.highlights[i].content, self.highlights[i].loc, self.highlights[i].locEnd]
-                curRow += "" if not includeDates else [self.highlights[i].dateStr] 
+                while nIdx < len(self.notes) and self.notes[nIdx].loc < self.highlights[i].locEnd:
+                    nIdx += 1
+                ascNote = ""
+                if (nIdx < len(self.notes) and (nIdx not in usedNotes) and
+                        self.highlights[i].loc-2 < self.notes[nIdx-1].loc < self.highlights[i].locEnd):
+                    ascNote = self.notes[nIdx-1].content
+                    usedNotes[nIdx] = True
+                curRow += [self.highlights[i].content, ascNote, self.highlights[i].loc, self.highlights[i].locEnd]
             else:
-                curRow += ["", "", ""]
-                curRow += "" if not includeDates else [self.highlights[i].dateStr] 
+                curRow += ["", "", "", ""]
+
             if i < len(self.notes):
                 curRow += [self.notes[i].content, self.notes[i].loc]
-                curRow += "" if not includeDates else [self.notes[i].dateStr] 
             else:
                 curRow += ["", ""]
-                curRow += "" if not includeDates else [self.notes[i].dateStr] 
             if i < len(self.bookmarks):
                 curRow += [self.bookmarks[i].loc]
-                curRow += "" if not includeDates else [self.bookmarks[i].dateStr] 
             else:
                 curRow += [""]
-                curRow += "" if not includeDates else [self.bookmarks[i].dateStr] 
             csvRows.append(curRow)
         return csvRows
 
