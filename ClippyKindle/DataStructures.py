@@ -64,31 +64,29 @@ class Book:
         converts this book object to a CSV file (columns sorted by location in book increasing)
         return (list of lists): array of lists representing each row (can be written to csv file later)
         """
-        #items = self.highlights + self.notes + self.bookmarks
-        #items = [item.toDict() for item in items]
-        #locType = "loc" if len(items) == 0 else items[0]["locType"] # in case we want to change the column names
-
-        # TODO: add support for placing notes next to their associated highlights as an extra column...
         self.sort(removeDups=False) # in case user didn't sort first
-        csvRows = [["highlight", "associated_note", "highlight_loc", "highlight_loc_end", "note", "note_loc", "bookmark_loc"]]
-        # TODO: get associated_note field to work(see "Outskirts" in Sinsajo) /test it
+        csvRows = [["highlight", "associated_note", "highlight_loc", "note", "note_loc", "bookmark_loc"]]
 
         nIdx = 0 # running associated note index (for matching highlights with an overlapping note)
         usedNotes = {} # dict containing the values of nIdx already associated with a highlight
         for i in range(0, max(len(self.highlights), len(self.notes), len(self.bookmarks))):
             curRow = []
             if i < len(self.highlights):
-                while nIdx < len(self.notes) and self.notes[nIdx].loc < self.highlights[i].locEnd:
-                    nIdx += 1
                 ascNote = ""
-                if (nIdx < len(self.notes) and (nIdx not in usedNotes) and
-                        self.highlights[i].loc-2 < self.notes[nIdx-1].loc < self.highlights[i].locEnd):
-                    ascNote = self.notes[nIdx-1].content
-                    usedNotes[nIdx] = True
-                curRow += [self.highlights[i].content, ascNote, self.highlights[i].loc, self.highlights[i].locEnd]
+                # advance nIdx until its loc passes the current highlight:
+                while nIdx < len(self.notes)-1 and self.notes[nIdx].loc < self.highlights[i].loc:
+                    nIdx += 1
+                #if "Sinsajo" in self.title: # for debugging
+                #    print("nIdx = {}/{} (loc {}), at highlight {}-{}".format(nIdx,len(self.notes), self.notes[nIdx].loc, self.highlights[i].loc, self.highlights[i].locEnd))
+                for off in [1,0]: # look at nIdx-1 and nIdx for a match
+                    if (0 <= nIdx-off < len(self.notes) and (nIdx-off not in usedNotes) and
+                            self.highlights[i].loc <= self.notes[nIdx-off].loc <= self.highlights[i].locEnd):
+                        ascNote = self.notes[nIdx-off].content
+                        usedNotes[nIdx-off] = True
+                        break
+                curRow += [self.highlights[i].content, ascNote, "{}-{}".format(self.highlights[i].loc, self.highlights[i].locEnd)]
             else:
-                curRow += ["", "", "", ""]
-
+                curRow += ["", "", ""]
             if i < len(self.notes):
                 curRow += [self.notes[i].content, self.notes[i].loc]
             else:

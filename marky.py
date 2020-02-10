@@ -50,11 +50,11 @@ def jsonToMarkdown(data):
     return:
         (str) markdown representation of provided book data
     """
-    #pp = pprint.PrettyPrinter(indent=4)
-    #pp.pprint(jsonData)
     titleStr = data["title"]
     titleStr += "" if data["author"] == None else " by {}".format(data["author"])
     #print("converting '{}'".format(titleStr))
+    if len(data["items"]) > 0:
+        locType = "loc" if data["items"][0]["locType"] == "location" else data["items"][0]["locType"]
 
     # TODO: add dates for first and last highlight/note/bookmark...
     # and maybe stats on number of each type (TODO: have clippy.py store these in the json)
@@ -65,11 +65,11 @@ def jsonToMarkdown(data):
             item["content"] = item["content"].replace('*', '\*')
 
         if item["type"] == "highlight":
-            md += "> {} -- {} {}\n\n".format(item["content"], item["locType"], item["loc"])
+            md += "* {} -- [{} {}]\n\n".format(item["content"], locType, item["loc"])
         if item["type"] == "note":
-            md += "* {} -- {} {}\n\n".format(item["content"], item["locType"], item["loc"])
+            md += "> {} -- [{} {}]\n\n".format(item["content"], locType, item["loc"])
         if item["type"] == "bookmark":
-            md += "* [Bookmark -- {} {}]\n\n".format(item["locType"], item["loc"])
+            md += "* [Bookmark -- {} {}]\n\n".format(locType, item["loc"])
 
     return md
 
