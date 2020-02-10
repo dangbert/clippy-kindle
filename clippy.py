@@ -64,7 +64,7 @@ def main():
             settings = {"csvOnly": [], "both": [], "mdOnly": [], "skip": []}
 
     # remove files we will be appending to:
-    for fname in [".all_skipped.md", ".all_csv.csv"]:
+    for fname in [".skipped.md", ".all.md", ".all.csv"]:
         if os.path.exists(outPath + fname):
             os.remove(outPath + fname)
     # create csv and md files for books based on settings:
@@ -136,16 +136,18 @@ def writeBook(book, settings, outPath):
         with open(outPathMD, 'w') as f:
             f.write(mdStr)
         print("created: '{}'".format(outPathMD))
+        with open(outPath + ".all.md", 'a+') as f: # append or create file
+            f.write(mdStr)
     if bookKey[1] == "1":
         # write csv file
         outPathCSV = "{}{}.csv".format(outPath, fname)
         with open(outPathCSV, 'w') as f:
             csv.writer(f).writerows(book.toCSV())
         print("created: '{}'".format(outPathCSV))
-        with open(outPath + ".all_csv.csv", 'a+') as f:  # append or create file
+        with open(outPath + ".all.csv", 'a+') as f:  # append or create file
             csv.writer(f).writerows(book.toCSV())
     if CATEGORIES[bookKey] == "skip":
-        with open(outPath + ".all_skipped.md", 'a+') as f: # append or create file
+        with open(outPath + ".skipped.md", 'a+') as f: # append or create file
             f.write(jsonToMarkdown(book.toDict()))
 
     return settings
