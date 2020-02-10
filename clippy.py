@@ -63,13 +63,15 @@ def main():
             args.settings = getAvailableFname("settings", ".json")
             settings = {"csvOnly": [], "both": [], "mdOnly": [], "skip": []}
 
-    # create csv and md files for books based on settings
+    # remove files we will be appending to:
+    for fname in [".all_skipped.md", ".all_csv.csv"]:
+        if os.path.exists(outPath + fname):
+            os.remove(outPath + fname)
+    # create csv and md files for books based on settings:
     for book in bookList:
-        # write md and/or csv as desired and update settings object
         settings = writeBook(book, settings, outPath)
 
     # update settings.json
-    # TODO: sort each section...
     if args.settings != None:
         with open(args.settings, 'w') as f:
             json.dump(settings, f, indent=2) # write indented json to file
@@ -140,6 +142,12 @@ def writeBook(book, settings, outPath):
         with open(outPathCSV, 'w') as f:
             csv.writer(f).writerows(book.toCSV())
         print("created: '{}'".format(outPathCSV))
+        with open(outPath + ".all_csv.csv", 'a+') as f:  # append or create file
+            csv.writer(f).writerows(book.toCSV())
+    if CATEGORIES[bookKey] == "skip":
+        with open(outPath + ".all_skipped.md", 'a+') as f: # append or create file
+            f.write(jsonToMarkdown(book.toDict()))
+
     return settings
 
 
