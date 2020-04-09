@@ -147,6 +147,22 @@ class Book:
         self.notes = removeDuplicates(self.notes)           # remove duplicate notes
         self.bookmarks = removeDuplicates(self.bookmarks)   # remove duplicate bookmarks
 
+    @staticmethod
+    def fromDict(d):
+        """
+        Returns a new Book object populated with the values from a provided dict (e.g. read from a JSON file)
+        """
+        book = Book(d["title"], d["author"])
+        for item in d["items"]:
+            if item["type"] == "highlight":
+                book.highlights.append(Highlight.fromDict(item))
+            if item["type"] == "note":
+                book.notes.append(Note.fromDict(item))
+            if item["type"] == "bookmark":
+                book.bookmarks.append(Bookmark.fromDict(item))
+        book.sort(removeDups=False) # don't remove dupes if provided dict contained them
+        return book
+
 
 class Highlight:
     """ 

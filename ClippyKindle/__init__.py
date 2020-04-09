@@ -16,11 +16,32 @@ NOTE_START = "- Your Note on"
 
 class ClippyKindle:
     """
-    Does the work of parsing a "My Clippings.txt" file
+    Does the work of parsing either a "My Clippings.txt" file
+    or a previously exported JSON file created from a "My Clippings.txt" file.
     (using classes from ClippyKindle.DataStructures for storage)
     """
 
-    def parse(self, fname, verbose=False):
+    @staticmethod
+    def parseJsonFile(fname):
+        """
+        parses the notes/highlights/bookmarks stored in a JSON file previously created with ClippyKindle
+        returns an array of Book objects
+
+        parameters:
+            fname (str): file path to json file to parse (e.g. "collection.json")
+        return:
+            (:type listOfObjects: DataStructures.Book) list of Book objects
+        """
+        bookList = []
+        with open(fname) as f:
+            jsonData = json.load(f)
+        for bookData in jsonData:
+            bookList.append(DataStructures.Book.fromDict(bookData))
+        return bookList
+
+    # TODO: rename parseClippingsFile
+    @staticmethod
+    def parse(fname, verbose=False):
         """
         parses the notes/highlights/bookmarks stored in a kindle clippings txt file (printing any errors)
         and returns the data as an array of dicts (each dict representing the data from one book).
@@ -56,7 +77,7 @@ class ClippyKindle:
                 line = line.rstrip("\n")
                 # TODO: remove weird character from some lines!!!
                 if line == "==========":
-                    res = self._parseSection(section, allBooks)
+                    res = ClippyKindle._parseSection(section, allBooks)
                     if res != None:
                         numErrors += 1
                         print(res)
@@ -89,7 +110,8 @@ class ClippyKindle:
             outData.append(allBooks[bookId])
         return outData
 
-    def _parseSection(self, section, allBooks):
+    @staticmethod
+    def _parseSection(section, allBooks):
         """
         Parses lines belonging to a section of the clippings file that pertains to a single Highlight/Note/Bookmark object
         Creates a Highlight, Note, or Bookmark object as needed and stores it in allBooks under its relevant book
