@@ -96,6 +96,8 @@ def main():
                     os.remove(combinedCSV)
 
             bookName = settings[groupName]["books"][i]["name"]
+            chapters = settings[groupName]["books"][i]["chapters"]
+
             #print("at book: " + bookName)
             if not bookName in bookMap:
                 print("WARNING: skipping book '{}' not found in file '{}'".format(bookName, args.settings))
@@ -114,7 +116,7 @@ def main():
 
             if outputMD:
                 # write markdown file
-                mdStr = jsonToMarkdown(bookObj.toDict())
+                mdStr = jsonToMarkdown(bookObj.toDict(), chapters)
                 with open(outPathMD, 'w') as f:
                     f.write(mdStr)
                 print("created: '{}'".format(outPathMD))
@@ -131,7 +133,7 @@ def main():
             # append md for all files that would be entirely skipped to a single file for reference
             if not outputMD and not outputCSV:
                 with open(skippedMD, 'a+') as f: # append or create file
-                    f.write(jsonToMarkdown(bookObj.toDict()))
+                    f.write(jsonToMarkdown(bookObj.toDict(), chapters))
 
     #for bookName in bookList:
     for bookName in bookMap:
@@ -188,11 +190,13 @@ def main():
     #    print("created '{}'".format(outPath))
     #########################################
 
-def jsonToMarkdown(data):
+def jsonToMarkdown(data, chapters=[]):
     """
     creates a markdown representation of a book's highlights/notes/bookmarks
     parameters:
         data (dict): dict holding data about a book (created with Book.toDict())
+        chapters (array of dicts): (optional) array storing list of book chapters
+            e.g. [{"loc": 248, "title": "CHAPTER 1: The cult of the Head Start"}, ...]
     return:
         (str) markdown representation of provided book data
     """
@@ -206,16 +210,27 @@ def jsonToMarkdown(data):
     # and maybe stats on number of each type (TODO: have clippy.py store these in the json)
     md = ""
     md += "# {}\n---\n\n".format(titleStr)
+    cIndex = 0 # current index into chapters
     for item in data["items"]:
+        # handle any chapters appearing before this item (that haven't yet been outputted)
+        for i in range(cIndex, len(chapters)):
+            if chapters[cIndex]["loc"] > item["loc"]:
+                break
+            md += "## {}\n".format(chapters[cIndex]["title"])
+            cIndex += 1
+
         if "content" in item:  # escape all '*' as '\*'
             item["content"] = item["content"].replace('*', '\*')
-
         if item["type"] == "highlight":
             md += "* {} -- [{} {}]\n\n".format(item["content"], locType, item["loc"])
         if item["type"] == "note":
             md += "> {} -- [{} {}]\n\n".format(item["content"], locType, item["loc"])
         if item["type"] == "bookmark":
             md += "* [Bookmark -- {} {}]\n\n".format(locType, item["loc"])
+
+    # print any chapters not yet reached:
+    for cIndex in range(cIndex, len(chapters)):
+        md += "## {}\n".format(chapters[cIndex]["title"])
     return md
 
 def answerYesNo(prompt):
