@@ -29,11 +29,6 @@ def main():
         exit(1)
     args = parser.parse_args()
 
-    # read json settings from file:
-    settings = None
-    if args.settings != None:
-        with open(args.settings) as f:
-            settings = json.load(f)
     outPath = args.out_folder + ("" if args.out_folder.endswith("/") else "/")
 
     bookList = ClippyKindle.parseJsonFile(args.json_file)
@@ -41,60 +36,49 @@ def main():
     for bookObj in bookList:
         bookMap[bookObj.getName()] = {"obj": bookObj, "used": False}
 
-
-    #############################################
-    ####### from clippy.py:
-    #############################################
-    # offer to create a settings file if not provided
-    if settings == None:
+    # read json settings from file:
+    settings = None
+    updateSettings = True # whether to write settings to file (updating existing if provided)
+    if args.settings != None:
+        with open(args.settings) as f:
+            settings = json.load(f)
+    else:
         print("No settings file provided... defaulting to creating both a .md and .csv file for each book.")
-        if answerYesNo("OR create settings file now (y/n)? "):
-            args.settings = getAvailableFname("settings", ".json")
-            # default settings (with default group names)
-            settings = {
-                    "csvOnly": {"outputMD": false, "outputCSV": true, "books": []},
-                    "both":    {"outputMD": true, "outputCSV": true, "books": []},
-                    "mdOnly":  {"outputMD": true, "outputCSV": false, "books": []},
-                    "skip":    {"outputMD": false, "outputCSV": false, "books": []}
-            }
-        else:
-            print("CODE doesn't currently work when no settings are provided. fix this next.") # TODO
-            # because we'd have to iterate over bookList instead of settings
-            exit(1)
+        if not answerYesNo("Save these settings to file (y/n)? "):
+            updateSettings = False
 
-    # remove files we will be appending to:
-    #for fname in [".skipped.md", ".all.md", ".all.csv"]:
-    #    if os.path.exists(outPath + fname):
-    #        os.remove(outPath + fname)
-    # create csv and md files for books based on settings:
-    #for book in bookList:
-    #    settings = writeBook(book, settings, outPath)
-
-    # TODO: track which books from bookList we don't use... (to notify user)
-    #bookList = ClippyKindle.parseJsonFile(args.json_file)
-    skippedMD = outPath + ".skipped.md" # same for every group
-    if os.path.exists(skippedMD):       # remove file we will be appending to
-        os.remove(skippedMD)
-    # TODO: store (optional) combined filename in settings for each group
+        args.settings = getAvailableFname("settings", ".json")
+        # default settings (with default group names)
+        settings = {
+            "csvOnly": {"outputMD": False, "outputCSV": True, "combinedMD": "", "combinedCSV": "", "books": []},
+            "both":    {"outputMD": True, "outputCSV": True, "combinedMD": "", "combinedCSV": "", "books": []},
+            "mdOnly":  {"outputMD": True, "outputCSV": False, "combinedMD": "", "combinedCSV": "", "books": []},
+            "skip":    {"outputMD": False, "outputCSV": False, "combinedMD": "", "combinedCSV": "", "books": []}
+        }
+        # put all books under section both
+        for bookObj in bookList:
+            settings["both"]["books"].append({
+                "name": bookObj.getName(),
+                "chapters": []
+            })
 
     warnings = 0
     for groupName in settings:
         #print("at group: " + groupName)
         outputMD = (settings[groupName]["outputMD"] == True)    # whether to output md file for books in group
         outputCSV = (settings[groupName]["outputCSV"] == True) # whether to output csv file for books in group
-        # filenames for combined output (in addition to seprate files, combine everything in group)
-        combinedMD = outPath + ".{}.md".format(groupName)
-        combinedCSV = outPath + ".{}.csv".format(groupName)
+
+        # filenames for combined output
+        #   (in addition to seprate files, combine everything in group if provided path != "")
+        combinedMD = settings[groupName]["combinedMD"].strip()
+        combinedCSV = settings[groupName]["combinedCSV"].strip()
+        # remove files we will be appending to:
+        for path in [combinedMD, combinedCSV]:
+            if path != "" and os.path.exists(path):
+                os.remove(path)
 
         # loop over books in this group
         for i in range(len(settings[groupName]["books"])):
-            if i == 0:
-                # remove files we will be appending to
-                if os.path.exists(combinedMD):
-                    os.remove(combinedMD)
-                if os.path.exists(combinedCSV):
-                    os.remove(combinedCSV)
-
             bookName = settings[groupName]["books"][i]["name"]
             chapters = settings[groupName]["books"][i]["chapters"]
 
@@ -104,36 +88,35 @@ def main():
                 warnings += 1
                 continue
             if bookMap[bookName]["used"] == True:
-                print("WARNING: book '{}' found in multiple groups in file '{}'".format(bookName, args.settings))
+                print("WARNING: skipping book '{}' found in multiple groups in file '{}'".format(bookName, args.settings))
                 warnings += 1
                 continue
             bookMap[bookName]["used"] = True
 
-            bookObj = bookMap[bookName]["obj"] # Book object from collection
-            fname = bookObj.getName().replace("/", "|") # sanitize for output filename
-            outPathMD = "{}{}.md".format(outPath, fname)
-            outPathCSV = "{}{}.csv".format(outPath, fname)
+            bookObj = bookMap[bookName]["obj"]             # Book object from collection
+            fname = bookObj.getName().replace("/", "|")    # sanitize for output filename
+            outPathMD = "{}{}.md".format(outPath, fname)   # output markdown filename
+            outPathCSV = "{}{}.csv".format(outPath, fname) # output csv filename
 
+            mdStr = jsonToMarkdown(bookObj.toDict(), chapters)
+            csvStr = bookObj.toCSV()
             if outputMD:
                 # write markdown file
-                mdStr = jsonToMarkdown(bookObj.toDict(), chapters)
                 with open(outPathMD, 'w') as f:
                     f.write(mdStr)
                 print("created: '{}'".format(outPathMD))
+            if combinedMD != "":
                 with open(combinedMD, 'a+') as f: # append or create file
                     f.write(mdStr)
             if outputCSV:
                 # write csv file
                 with open(outPathCSV, 'w') as f:
-                    csv.writer(f).writerows(bookObj.toCSV())
+                    csv.writer(f).writerows(csvStr)
                 print("created: '{}'".format(outPathCSV))
-                with open(outPath + ".all.csv", 'a+') as f:  # append or create file
-                    csv.writer(f).writerows(bookObj.toCSV())
+            if combinedCSV != "":
+                with open(combinedCSV, 'a+') as f: # append or create file
+                    csv.writer(f).writerows(csvStr)
 
-            # append md for all files that would be entirely skipped to a single file for reference
-            if not outputMD and not outputCSV:
-                with open(skippedMD, 'a+') as f: # append or create file
-                    f.write(jsonToMarkdown(bookObj.toDict(), chapters))
 
     #for bookName in bookList:
     for bookName in bookMap:
@@ -143,51 +126,11 @@ def main():
     if warnings != 0:
         print("\nFinished with {} warnings".format(warnings))
 
-
-    ### tmp changes
-    # iterate over groups (e.g. "csvOnly" "both", "mdOnly", "skip")
-    #for group in settings:
-    #    print("----\n")
-    #    print(group)
-    #    #for bookName in settings[group]:
-    #    for i in range(len(settings[group])):
-    #        bookName = settings[group][i]
-    #        settings[group][i] = {
-    #            "name": bookName,
-    #            "printChapterNumber": True,
-    #            "chapters": []
-    #        }
-    #        print(bookName)
-    #        #settings[group][
-    ###
-
     # update settings.json
-    if args.settings != None: # TODO: should we check (settings != None) instead
+    if updateSettings:
         with open(args.settings, 'w') as f:
             json.dump(settings, f, indent=2) # write indented json to file
         print("\nSettings stored in '{}'".format(args.settings))
-    #########################################
-
-    exit(0)
-
-
-    ########## original marky ###############
-    #########################################
-    ## read json from file:
-    #with open(args.json_file) as f:
-    #    jsonData = json.load(f)
-    ## convert json for each book to markdown and write to file:
-    #for bookData in jsonData:
-    #    markdownStr = jsonToMarkdown(bookData)  # convert to markdown string
-    #    fname = bookData["title"]
-    #    fname += "" if bookData["author"] == "" else " by {}".format(bookData["author"])
-    #    fname = fname.replace("/", "|")
-    #    outPath = args.out_folder + ("" if args.out_folder.endswith("/") else "/") + fname + ".md"
-
-    #    # TODO: check if file already exists
-    #    with open(outPath, 'w') as out_file:
-    #        out_file.write(markdownStr)
-    #    print("created '{}'".format(outPath))
     #########################################
 
 def jsonToMarkdown(data, chapters=[]):
