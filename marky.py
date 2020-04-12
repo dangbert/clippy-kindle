@@ -74,8 +74,8 @@ def main():
         combinedCSV = settings[groupName]["combinedCSV"].strip()
         # remove files we will be appending to:
         for path in [combinedMD, combinedCSV]:
-            if path != "" and os.path.exists(path):
-                os.remove(path)
+            if path != "" and os.path.exists(args.out_folder + "/" + path):
+                os.remove(args.out_folder + "/" + path)
 
         # loop over books in this group
         for i in range(len(settings[groupName]["books"])):
@@ -106,7 +106,7 @@ def main():
                     f.write(mdStr)
                 print("created: '{}'".format(outPathMD))
             if combinedMD != "":
-                with open(combinedMD, 'a+') as f: # append or create file
+                with open(args.out_folder + "/" + combinedMD, 'a+') as f: # append or create file
                     f.write(mdStr)
             if outputCSV:
                 # write csv file
@@ -114,9 +114,8 @@ def main():
                     csv.writer(f).writerows(csvStr)
                 print("created: '{}'".format(outPathCSV))
             if combinedCSV != "":
-                with open(combinedCSV, 'a+') as f: # append or create file
+                with open(args.out_folder + "/" + combinedCSV, 'a+') as f: # append or create file
                     csv.writer(f).writerows(csvStr)
-
 
     #for bookName in bookList:
     for bookName in bookMap:

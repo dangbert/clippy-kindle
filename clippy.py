@@ -14,7 +14,7 @@ from ClippyKindle import ClippyKindle
 
 def main():
     # parse args:
-    parser = argparse.ArgumentParser(description='Parses a "My Clippings.txt" file from a kindle')
+    parser = argparse.ArgumentParser(description='Parses a "My Clippings.txt" file from a kindle and outputs the data to a json file.')
     parser.add_argument('file_name', type=str, help='(string) path to kindle clippings file e.g. "./My Clippings.txt"')
     parser.add_argument('out_folder', type=str, help='(string) path of folder to output parsed clippings')
 
