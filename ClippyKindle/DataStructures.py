@@ -49,6 +49,16 @@ class Book:
         tmp = self.bookmarks
         self.bookmarks = [obj for obj in tmp if obj.date.timestamp() > cutDate.timestamp()]
 
+    def getLastDateEpoch(self):
+        """
+        returns the epoch seconds of the lastest item (note, highlight, or bookmark) stored in this book
+        return (int): epoch seconds (e.g. 1480050866)
+        """
+        latest = 0.0
+        for obj in self.highlights + self.notes + self.bookmarks:
+            latest = max(latest, obj.date.timestamp())
+        return int(latest)
+
     def toDict(self):
         """
         converts this book object to a dict (which can be jsonified later)
@@ -56,8 +66,7 @@ class Book:
         """
         items = self.highlights + self.notes + self.bookmarks
         items = sortDictList([item.toDict() for item in items])
-        data = {"title": self.title, "author": self.author, "items": items}
-        return data
+        return {"title": self.title, "author": self.author, "items": items}
 
     def toCSV(self):
         """
@@ -222,10 +231,9 @@ class Highlight:
         """
         Returns dict representing this object
         """
-        data = {"type": "highlight", "loc": self.loc, "locEnd": self.locEnd, "locType": self.locType,
+        return {"type": "highlight", "loc": self.loc, "locEnd": self.locEnd, "locType": self.locType,
                 "dateStr": self.date.strftime("%B %d, %Y %H:%M:%S"),
-                "dateEpoch": self.date.timestamp(), "content": self.content}
-        return data
+                "dateEpoch": int(self.date.timestamp()), "content": self.content}
 
     @staticmethod
     def fromDict(d):
@@ -294,10 +302,9 @@ class Note:
         """
         Returns dict representing this object
         """
-        data = {"type": "note", "loc": self.loc, "locType": self.locType,
+        return {"type": "note", "loc": self.loc, "locType": self.locType,
                 "dateStr": self.date.strftime("%B %d, %Y %H:%M:%S"),
-                "dateEpoch": self.date.timestamp(), "content": self.content}
-        return data
+                "dateEpoch": int(self.date.timestamp()), "content": self.content}
 
     @staticmethod
     def fromDict(d):
@@ -346,10 +353,9 @@ class Bookmark:
         """
         Returns dict representing this object
         """
-        data = {"type": "bookmark", "loc": self.loc, "locType": self.locType,
+        return {"type": "bookmark", "loc": self.loc, "locType": self.locType,
                 "dateStr": self.date.strftime("%B %d, %Y %H:%M:%S"),
-                "dateEpoch": self.date.timestamp()}
-        return data
+                "dateEpoch": int(self.date.timestamp())}
 
     @staticmethod
     def fromDict(d):

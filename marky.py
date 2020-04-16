@@ -18,8 +18,7 @@ from ClippyKindle import ClippyKindle
 def main():
     # parse args:
     parser = argparse.ArgumentParser(description='Parses a json file created by clippy.py and outputs a markdown file for each book')
-    parser.add_argument('json_file', type=str, help='(string) path to json file created by clippy.py (e.g. "./out.json")')
-    # TODO: default to '.' as out_folder if not provided?
+    parser.add_argument('json_file', type=str, help='(string) path to json file created by clippy.py (e.g. "./collection.json")')
     parser.add_argument('out_folder', type=str, help='(string) path of folder to output markdown and csv files')
     parser.add_argument('--settings', type=str, help='(string) path to json file containing settings for parsing books (optional). If no settings is provided then the program will offer to create one, otherwise a .md and .csv file will be created for all books.')
     # (args starting with '--' are made optional)
@@ -94,33 +93,42 @@ def main():
             bookMap[bookName]["used"] = True
 
             bookObj = bookMap[bookName]["obj"]             # Book object from collection
+            lastDateEpoch = bookObj.getLastDateEpoch()     # e.g. 1480050866
             fname = bookObj.getName().replace("/", "|")    # sanitize for output filename
             outPathMD = "{}{}.md".format(outPath, fname)   # output markdown filename
             outPathCSV = "{}{}.csv".format(outPath, fname) # output csv filename
 
             mdStr = jsonToMarkdown(bookObj.toDict(), chapters)
             csvStr = bookObj.toCSV()
+            # write markdown file:
             if outputMD:
-                # write markdown file
                 with open(outPathMD, 'w') as f:
                     f.write(mdStr)
                 print("created: '{}'".format(outPathMD))
+                # update last outputted timestamp
+                settings[groupName]["books"][i]["lastOutputEpochMD"] = lastDateEpoch
             if combinedMD != "":
                 with open(args.out_folder + "/" + combinedMD, 'a+') as f: # append or create file
                     f.write(mdStr)
+                #settings[groupName]["books"][i]["lastOutputEpochMD"] = lastDateEpoch
+            # write csv file:
             if outputCSV:
-                # write csv file
                 with open(outPathCSV, 'w') as f:
                     csv.writer(f).writerows(csvStr)
                 print("created: '{}'".format(outPathCSV))
+                # update last outputed timestamp
+                settings[groupName]["books"][i]["lastOutputEpochCSV"] = lastDateEpoch
             if combinedCSV != "":
                 with open(args.out_folder + "/" + combinedCSV, 'a+') as f: # append or create file
                     csv.writer(f).writerows(csvStr)
+                settings[groupName]["books"][i]["lastOutputEpochCSV"] = lastDateEpoch
 
     #for bookName in bookList:
     for bookName in bookMap:
         if bookMap[bookName]["used"] == False:
             print("WARNING: book '{}' not found in settings file '{}'".format(bookName, args.settings))
+            # TODO: if book not found in settings, offer to let the user add it to the desired given category...
+            #   (consider doing this above when default settings are created)
             warnings += 1
     if warnings != 0:
         print("\nFinished with {} warnings".format(warnings))
