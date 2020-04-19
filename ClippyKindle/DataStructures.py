@@ -1,4 +1,5 @@
 from datetime import datetime
+import ClippyKindle
 
 class Book:
     """ 
@@ -57,15 +58,25 @@ class Book:
         self.notes = [obj for obj in self.notes if obj.date.timestamp() < cutDate.timestamp()]
         self.bookmarks = [obj for obj in self.bookmarks if obj.date.timestamp() < cutDate.timestamp()]
 
-    def getLastDateEpoch(self):
+
+    def getDateRange(self):
         """
-        returns the epoch seconds of the lastest item (note, highlight, or bookmark) stored in this book
-        return (int): epoch seconds (e.g. 1480050866)
+        retrieves the datetime of the earliest and latest item (note, highlight, or bookmark) stored in this book
+        (the datetime of an item is the timestamp at which it was originally added to the book)
+
+        return: (tuple of datetime.datetime objects) first object in tuple is the earliest date, second is the latest
+            (if book has no items, earliest will be returned as None, and the latest as the datetimes at epoch 0)
         """
-        latest = 0.0
+        latest = datetime.fromtimestamp(0)
+        earliest = None
         for obj in self.highlights + self.notes + self.bookmarks:
-            latest = max(latest, obj.date.timestamp())
-        return int(latest)
+            #print(latest.date.timestamp())
+            latest = datetime.fromtimestamp(max(latest.timestamp(), obj.date.timestamp()))
+            if earliest == None:
+                earliest = obj.date
+            else:
+                earliest = datetime.fromtimestamp(min(earliest.timestamp(), obj.date.timestamp()))
+        return (earliest, latest)
 
     def toDict(self):
         """
@@ -240,7 +251,7 @@ class Highlight:
         Returns dict representing this object
         """
         return {"type": "highlight", "loc": self.loc, "locEnd": self.locEnd, "locType": self.locType,
-                "dateStr": self.date.strftime("%B %d, %Y %H:%M:%S"),
+                "dateStr": self.date.strftime(ClippyKindle.DATE_FMT_OUT),
                 "dateEpoch": int(self.date.timestamp()), "content": self.content}
 
     @staticmethod
@@ -311,7 +322,7 @@ class Note:
         Returns dict representing this object
         """
         return {"type": "note", "loc": self.loc, "locType": self.locType,
-                "dateStr": self.date.strftime("%B %d, %Y %H:%M:%S"),
+                "dateStr": self.date.strftime(ClippyKindle.DATE_FMT_OUT),
                 "dateEpoch": int(self.date.timestamp()), "content": self.content}
 
     @staticmethod
@@ -362,7 +373,7 @@ class Bookmark:
         Returns dict representing this object
         """
         return {"type": "bookmark", "loc": self.loc, "locType": self.locType,
-                "dateStr": self.date.strftime("%B %d, %Y %H:%M:%S"),
+                "dateStr": self.date.strftime(ClippyKindle.DATE_FMT_OUT),
                 "dateEpoch": int(self.date.timestamp())}
 
     @staticmethod

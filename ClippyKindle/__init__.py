@@ -10,9 +10,11 @@ import pytz
 
 from ClippyKindle import DataStructures
 
+# NOTE: you can also use a config.ini to define config https://stackoverflow.com/a/38275781
 HIGHLIGHT_START = "- Your Highlight on"
 BOOKMARK_START = "- Your Bookmark on"
 NOTE_START = "- Your Note on"
+DATE_FMT_OUT = "%B %d, %Y %H:%M:%S" # format string for outputting datetime objects
 
 class ClippyKindle:
     """

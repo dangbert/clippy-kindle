@@ -14,7 +14,7 @@ from datetime import datetime
 import pytz
 import pprint
 
-from ClippyKindle import ClippyKindle
+import ClippyKindle
 
 def main():
     # parse args:
@@ -23,8 +23,8 @@ def main():
     parser.add_argument('out_folder', type=str, help='(string) path of folder to output markdown and csv files')
     parser.add_argument('--settings', type=str, help='(string) path to json file containing settings for parsing books (optional). If no settings is provided then the program will offer to create one, otherwise a .md and .csv file will be created for all books.')
     # https://docs.python.org/dev/library/argparse.html#action
-    parser.add_argument('--latest_csv', action="store_true", help='When this flag is provided, only the newly added items (since the last output) will be outputted to csv files.')
-    parser.add_argument('--update_epoch', action="store_true", help='When this flag is provided, epoch of the latest item outputted for each book will be updated in the settings file.')
+    parser.add_argument('--latest-csv', action="store_true", help='When this flag is provided, only the newly added items (since the last output) will be outputted to csv files.')
+    parser.add_argument('--update-outdate', action="store_true", help='When this flag is provided, epoch of the latest item outputted for each book will be updated in the settings file.')
     # (args starting with '--' are made optional)
 
     if len(sys.argv) == 1:
@@ -34,7 +34,7 @@ def main():
 
     outPath = args.out_folder + ("" if args.out_folder.endswith("/") else "/")
 
-    bookList = ClippyKindle.parseJsonFile(args.json_file)
+    bookList = ClippyKindle.ClippyKindle.parseJsonFile(args.json_file)
     bookMap = {} # map book titles to its respective Book object
     for bookObj in bookList:
         bookMap[bookObj.getName()] = {"obj": bookObj, "used": False}
@@ -97,10 +97,7 @@ def main():
             bookMap[bookName]["used"] = True
 
             bookObj = bookMap[bookName]["obj"]             # Book object from collection
-            # TODO: consider saving last output epoch as a date string instead...
-            #   and creating function Book.getDateRange() that returns a datetime tuple (first and last dates)
-            #   d = datetime.strptime("April 09, 2020 00:00:00", "%B %d, %Y %H:%M:%S") # parse example for oldEpoch if this change is made
-            lastDateEpoch = bookObj.getLastDateEpoch()     # epoch seconds of latest item added to book e.g. 1480050866
+            lastDate = bookObj.getDateRange()[1]           # datetime object of latest item added to book
             fname = bookObj.getName().replace("/", "|")    # sanitize for output filename
             outPathMD = "{}{}.md".format(outPath, fname)   # output markdown filename
             outPathCSV = "{}{}.csv".format(outPath, fname) # output csv filename
@@ -110,7 +107,8 @@ def main():
             if args.latest_csv:
                 # ensure csv only contains new data since the last time it was outputted
                 tmp = copy.deepcopy(bookObj)
-                oldEpoch = settings[groupName]["books"][i].get("lastOutputEpochCSV", 0) # default 0
+                oldEpoch = settings[groupName]["books"][i].get("lastOutputDate", 0) # default 0
+                oldEpoch = 0 if oldEpoch == 0 else datetime.strptime(oldEpoch, ClippyKindle.DATE_FMT_OUT).timestamp()
                 #print("using oldEpoch = {} ({})".format(oldEpoch, datetime.fromtimestamp(oldEpoch)))
                 tmp.cutBefore(datetime.fromtimestamp(oldEpoch))
                 csvStr = tmp.toCSV()
@@ -129,15 +127,15 @@ def main():
                     csv.writer(f).writerows(csvStr)
                 print("created: '{}'".format(outPathCSV))
                 # update last outputted timestamp
-                if args.update_epoch:
-                    settings[groupName]["books"][i]["lastOutputEpochCSV"] = lastDateEpoch
+                if args.update_outdate:
+                    settings[groupName]["books"][i]["lastOutputDate"] = lastDate.strftime(ClippyKindle.DATE_FMT_OUT)
             if combinedCSV != "":
                 # TODO: if file already exists (remove header from current csv being appended)
                 # TODO: print file created the first time it's created...
                 with open(args.out_folder + "/" + combinedCSV, 'a+') as f: # append or create file
                     csv.writer(f).writerows(csvStr)
-                if args.update_epoch:
-                    settings[groupName]["books"][i]["lastOutputEpochCSV"] = lastDateEpoch
+                if args.update_outdate:
+                    settings[groupName]["books"][i]["lastOutputDate"] = lastDate.strftime(ClippyKindle.DATE_FMT_OUT)
 
     #for bookName in bookList:
     for bookName in bookMap:
