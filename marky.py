@@ -119,8 +119,12 @@ def main():
                     f.write(mdStr)
                 print("created: '{}'".format(outPathMD))
             if combinedMD != "":
-                with open(args.out_folder + "/" + combinedMD, 'a+') as f: # append or create file
+                combinePath = os.path.join(args.out_folder, combinedMD)
+                existed = os.path.exists(combinePath)
+                with open(combinePath, 'a+') as f: # append or create file
                     f.write(mdStr)
+                if not existed:
+                    print("created: '{}'".format(combinePath)) # print the first time only
             # write csv file:
             if outputCSV:
                 with open(outPathCSV, 'w') as f:
@@ -130,14 +134,15 @@ def main():
                 if args.update_outdate:
                     settings[groupName]["books"][i]["lastOutputDate"] = ClippyKindle.dateToStr(lastDate)
             if combinedCSV != "":
-                # TODO: if file already exists (remove header from current csv being appended)
-                # TODO: print file created the first time it's created...
-                with open(args.out_folder + "/" + combinedCSV, 'a+') as f: # append or create file
-                    csv.writer(f).writerows(csvStr)
+                combinePath = os.path.join(args.out_folder, combinedCSV)
+                existed = os.path.exists(combinePath)
+                with open(combinePath, 'a+') as f:  # append or create file
+                    csv.writer(f).writerows(csvStr if not existed else csvStr[1:]) # remove header if file already existed
                 if args.update_outdate:
                     settings[groupName]["books"][i]["lastOutputDate"] = ClippyKindle.dateToStr(lastDate)
+                if not existed:
+                    print("created: '{}'".format(combinePath)) # print the first time only
 
-    #for bookName in bookList:
     for bookName in bookMap:
         if bookMap[bookName]["used"] == False:
             print("WARNING: book '{}' not found in settings file '{}'".format(bookName, args.settings))
