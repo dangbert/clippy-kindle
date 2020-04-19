@@ -17,6 +17,7 @@ def main():
     parser = argparse.ArgumentParser(description='Parses a "My Clippings.txt" file from a kindle and outputs the data to a json file.')
     parser.add_argument('file_name', type=str, help='(string) path to kindle clippings file e.g. "./My Clippings.txt"')
     parser.add_argument('out_folder', type=str, help='(string) path of folder to output parsed clippings')
+    parser.add_argument('--keep-dups', action="store_true", help="When this flag is provided, duplicate highlights/notes/bookmarks will not be detected/removed before outputting to json.")
 
     if len(sys.argv) == 1:
         parser.print_help(sys.stderr)
@@ -24,15 +25,14 @@ def main():
     args = parser.parse_args()
 
     # parse file:
-    bookList = ClippyKindle.parse(args.file_name)     # list of Book objects
+    bookList = ClippyKindle.parseClippings(args.file_name)     # list of Book objects
 
-    # do post-processing on books (sorting/removing duplicates)
-    removeDups = True # TODO: make this a cmd flag
-    if removeDups:
-        print("Removing duplicates (this may take a few minutes)...")
     outData = []
+    if not args.keep_dups:
+        print("Removing duplicates (this may take a few minutes)...")
     for book in bookList:
-        book.sort(removeDups=removeDups)
+        # do post-processing on books (sorting/removing duplicates)
+        book.sort(removeDups=(not args.keep_dups))
         outData.append(book.toDict())
 
     # get file name for outputting json data

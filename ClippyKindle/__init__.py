@@ -56,9 +56,8 @@ class ClippyKindle:
             bookList.append(DataStructures.Book.fromDict(bookData))
         return bookList
 
-    # TODO: rename parseClippingsFile
     @staticmethod
-    def parse(fname, verbose=False):
+    def parseClippings(fname, verbose=False):
         """
         parses the notes/highlights/bookmarks stored in a kindle clippings txt file (printing any errors)
         and returns the data as an array of dicts (each dict representing the data from one book).
@@ -78,8 +77,7 @@ class ClippyKindle:
                 msg (str): message to print
                 level (bool): True if msg is an error message, False otherwise
             """
-            # TODO: implement
-            # TODO: consider actually printing errors to stderr
+            # TODO: implement, consider actually printing errors to stderr
             pass
 
         allBooks = {} # dict mapping book title/author string to a Book object
@@ -122,7 +120,6 @@ class ClippyKindle:
             exit(1)
 
         outData = [] # list of Book objects
-        # TODO: should this be appending bookId instead?:
         for bookId in allBooks:
             outData.append(allBooks[bookId])
         return outData

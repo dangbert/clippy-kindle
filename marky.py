@@ -25,6 +25,7 @@ def main():
     # https://docs.python.org/dev/library/argparse.html#action
     parser.add_argument('--latest-csv', action="store_true", help='When this flag is provided, only the newly added items (since the last output) will be outputted to csv files.')
     parser.add_argument('--update-outdate', action="store_true", help='When this flag is provided, epoch of the latest item outputted for each book will be updated in the settings file.')
+    parser.add_argument('--omit-notes', action="store_true", help="When this flag is provided, the user's typed notes for each book will be omited in md output.")
     # (args starting with '--' are made optional)
 
     if len(sys.argv) == 1:
@@ -102,7 +103,7 @@ def main():
             outPathMD = "{}{}.md".format(outPath, fname)   # output markdown filename
             outPathCSV = "{}{}.csv".format(outPath, fname) # output csv filename
 
-            mdStr = jsonToMarkdown(bookObj.toDict(), chapters)
+            mdStr = jsonToMarkdown(bookObj.toDict(), chapters, args.omit_notes)
             csvStr = bookObj.toCSV()
             if args.latest_csv:
                 # ensure csv only contains new data since the last time it was outputted
@@ -153,7 +154,7 @@ def main():
         print("\nSettings stored in '{}'".format(args.settings))
     #########################################
 
-def jsonToMarkdown(data, chapters=[]):
+def jsonToMarkdown(data, chapters=[], omitNotes=False):
     """
     creates a markdown representation of a book's highlights/notes/bookmarks
     parameters:
@@ -195,7 +196,7 @@ def jsonToMarkdown(data, chapters=[]):
             item["content"] = item["content"].replace('*', '\*')
         if item["type"] == "highlight":
             md += "* {} -- [{} {}]\n\n".format(item["content"], locType, item["loc"])
-        if item["type"] == "note":
+        if item["type"] == "note" and not omitNotes:
             md += "> {} -- [{} {}]\n\n".format(item["content"], locType, item["loc"])
         if item["type"] == "bookmark":
             md += "* [Bookmark -- {} {}]\n\n".format(locType, item["loc"])

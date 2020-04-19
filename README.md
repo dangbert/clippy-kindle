@@ -26,7 +26,6 @@ mkdir -p out
 ### Inherent Limitations with "My Clippings.txt":
 * deleting or undoing a highlight in the book doesn't delete it from "My Clippings.txt" :(
   * However clippy.py will automatically detect and remove duplicate highlights, notes, and bookmarks
-* TODO: see if highlighting a section and selecting "note" creates both a note and a highlight for that text?
 ---
 ### Resources:
 * see "Google Books" section of [this](https://medium.com/@sawyerh/how-i-export-process-and-resurface-my-kindle-highlights-addc9de9af1a) for info on automating the download of the book's cover, etc...
