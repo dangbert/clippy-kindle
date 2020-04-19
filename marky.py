@@ -108,8 +108,7 @@ def main():
                 # ensure csv only contains new data since the last time it was outputted
                 tmp = copy.deepcopy(bookObj)
                 oldEpoch = settings[groupName]["books"][i].get("lastOutputDate", 0) # default 0
-                oldEpoch = 0 if oldEpoch == 0 else datetime.strptime(oldEpoch, ClippyKindle.DATE_FMT_OUT).timestamp()
-                #print("using oldEpoch = {} ({})".format(oldEpoch, datetime.fromtimestamp(oldEpoch)))
+                oldEpoch = 0 if oldEpoch == 0 else ClippyKindle.strToDate(oldEpoch).timestamp()
                 tmp.cutBefore(datetime.fromtimestamp(oldEpoch))
                 csvStr = tmp.toCSV()
 
@@ -128,14 +127,14 @@ def main():
                 print("created: '{}'".format(outPathCSV))
                 # update last outputted timestamp
                 if args.update_outdate:
-                    settings[groupName]["books"][i]["lastOutputDate"] = lastDate.strftime(ClippyKindle.DATE_FMT_OUT)
+                    settings[groupName]["books"][i]["lastOutputDate"] = ClippyKindle.dateToStr(lastDate)
             if combinedCSV != "":
                 # TODO: if file already exists (remove header from current csv being appended)
                 # TODO: print file created the first time it's created...
                 with open(args.out_folder + "/" + combinedCSV, 'a+') as f: # append or create file
                     csv.writer(f).writerows(csvStr)
                 if args.update_outdate:
-                    settings[groupName]["books"][i]["lastOutputDate"] = lastDate.strftime(ClippyKindle.DATE_FMT_OUT)
+                    settings[groupName]["books"][i]["lastOutputDate"] = ClippyKindle.dateToStr(lastDate)
 
     #for bookName in bookList:
     for bookName in bookMap:

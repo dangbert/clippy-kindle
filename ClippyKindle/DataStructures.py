@@ -251,15 +251,15 @@ class Highlight:
         Returns dict representing this object
         """
         return {"type": "highlight", "loc": self.loc, "locEnd": self.locEnd, "locType": self.locType,
-                "dateStr": self.date.strftime(ClippyKindle.DATE_FMT_OUT),
-                "dateEpoch": int(self.date.timestamp()), "content": self.content}
+                "dateStr": ClippyKindle.dateToStr(self.date), "content": self.content}
 
     @staticmethod
     def fromDict(d):
         """
         Returns a new Highlight object populated with the values from a provided dict (created with toDict())
         """
-        return Highlight((d["loc"], d["locEnd"]), d["locType"], datetime.fromtimestamp(d["dateEpoch"]), d["content"])
+        return Highlight((d["loc"], d["locEnd"]), d["locType"],
+                ClippyKindle.strToDate(d["dateStr"]), d["content"])
 
 
 class Note:
@@ -322,15 +322,14 @@ class Note:
         Returns dict representing this object
         """
         return {"type": "note", "loc": self.loc, "locType": self.locType,
-                "dateStr": self.date.strftime(ClippyKindle.DATE_FMT_OUT),
-                "dateEpoch": int(self.date.timestamp()), "content": self.content}
+                "dateStr": ClippyKindle.dateToStr(self.date), "content": self.content}
 
     @staticmethod
     def fromDict(d):
         """
         Returns a new Note object populated with the values from a provided dict (created with toDict())
         """
-        return Note(d["loc"], d["locType"], datetime.fromtimestamp(d["dateEpoch"]), d["content"])
+        return Note(d["loc"], d["locType"], ClippyKindle.strToDate(d["dateStr"]), d["content"])
 
 
 class Bookmark:
@@ -373,15 +372,13 @@ class Bookmark:
         Returns dict representing this object
         """
         return {"type": "bookmark", "loc": self.loc, "locType": self.locType,
-                "dateStr": self.date.strftime(ClippyKindle.DATE_FMT_OUT),
-                "dateEpoch": int(self.date.timestamp())}
-
+                "dateStr": ClippyKindle.dateToStr(self.date)}
     @staticmethod
     def fromDict(d):
         """
         Returns a new Bookmark object populated with the values from a provided dict (created with toDict())
         """
-        return Bookmark(d["loc"], d["locType"], datetime.fromtimestamp(d["dateEpoch"]))
+        return Bookmark(d["loc"], d["locType"], ClippyKindle.strToDate(d["dateStr"]))
 
 
 ##### helper methods: #####
@@ -391,12 +388,13 @@ def sortDictList(arr):
     in order by (increasing) page/location within the book (ties broken by date recorded).
 
     parameters:
-        arr (list of dict objects): list of dicts that contain (at least) the fields "loc" and "dateEpoch"
-                                    (these dicts should have created by a call of toDict())
+        arr (list of dict objects): list of dicts that contain (at least) the fields "loc" and "dateStr"
+            (these dicts should have created by a call of toDict())
     return (list of dict objects): original list of dicts except now reordered
     """
     for item in arr:
-        item["sortKey"] = item["loc"] + float("." + str(int(item["dateEpoch"])))
+        dateEpoch = ClippyKindle.strToDate(item["dateStr"]).timestamp()
+        item["sortKey"] = item["loc"] + float("." + str(int(dateEpoch)))
     arr.sort(key=lambda item: item["sortKey"]) # https://stackoverflow.com/a/403426
     for item in arr: # remove sortKeys
         item.pop("sortKey")

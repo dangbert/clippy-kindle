@@ -14,7 +14,22 @@ from ClippyKindle import DataStructures
 HIGHLIGHT_START = "- Your Highlight on"
 BOOKMARK_START = "- Your Bookmark on"
 NOTE_START = "- Your Note on"
+
 DATE_FMT_OUT = "%B %d, %Y %H:%M:%S" # format string for outputting datetime objects
+######## helper functions
+def strToDate(dateStr):
+    """
+    converts a provided string (of desired formatting) to a dateTime object
+    """
+    return datetime.strptime(dateStr, DATE_FMT_OUT)
+
+def dateToStr(dateObj):
+    """
+    converts a provided dateTime object to a string with desired formatting
+    """
+    return dateObj.strftime(DATE_FMT_OUT)
+########
+
 
 class ClippyKindle:
     """
