@@ -6,6 +6,7 @@ import sys
 import argparse
 import json
 import csv
+import copy
 
 from dateutil import parser
 from dateutil.relativedelta import *
@@ -21,6 +22,9 @@ def main():
     parser.add_argument('json_file', type=str, help='(string) path to json file created by clippy.py (e.g. "./collection.json")')
     parser.add_argument('out_folder', type=str, help='(string) path of folder to output markdown and csv files')
     parser.add_argument('--settings', type=str, help='(string) path to json file containing settings for parsing books (optional). If no settings is provided then the program will offer to create one, otherwise a .md and .csv file will be created for all books.')
+    # https://docs.python.org/dev/library/argparse.html#action
+    parser.add_argument('--latest_csv', action="store_true", help='When this flag is provided, only the newly added items (since the last output) will be outputted to csv files.')
+    parser.add_argument('--update_epoch', action="store_true", help='When this flag is provided, epoch of the latest item outputted for each book will be updated in the settings file.')
     # (args starting with '--' are made optional)
 
     if len(sys.argv) == 1:
@@ -93,35 +97,47 @@ def main():
             bookMap[bookName]["used"] = True
 
             bookObj = bookMap[bookName]["obj"]             # Book object from collection
-            lastDateEpoch = bookObj.getLastDateEpoch()     # e.g. 1480050866
+            # TODO: consider saving last output epoch as a date string instead...
+            #   and creating function Book.getDateRange() that returns a datetime tuple (first and last dates)
+            #   d = datetime.strptime("April 09, 2020 00:00:00", "%B %d, %Y %H:%M:%S") # parse example for oldEpoch if this change is made
+            lastDateEpoch = bookObj.getLastDateEpoch()     # epoch seconds of latest item added to book e.g. 1480050866
             fname = bookObj.getName().replace("/", "|")    # sanitize for output filename
             outPathMD = "{}{}.md".format(outPath, fname)   # output markdown filename
             outPathCSV = "{}{}.csv".format(outPath, fname) # output csv filename
 
             mdStr = jsonToMarkdown(bookObj.toDict(), chapters)
             csvStr = bookObj.toCSV()
+            if args.latest_csv:
+                # ensure csv only contains new data since the last time it was outputted
+                tmp = copy.deepcopy(bookObj)
+                oldEpoch = settings[groupName]["books"][i].get("lastOutputEpochCSV", 0) # default 0
+                #print("using oldEpoch = {} ({})".format(oldEpoch, datetime.fromtimestamp(oldEpoch)))
+                tmp.cutBefore(datetime.fromtimestamp(oldEpoch))
+                csvStr = tmp.toCSV()
+
             # write markdown file:
             if outputMD:
                 with open(outPathMD, 'w') as f:
                     f.write(mdStr)
                 print("created: '{}'".format(outPathMD))
-                # update last outputted timestamp
-                settings[groupName]["books"][i]["lastOutputEpochMD"] = lastDateEpoch
             if combinedMD != "":
                 with open(args.out_folder + "/" + combinedMD, 'a+') as f: # append or create file
                     f.write(mdStr)
-                #settings[groupName]["books"][i]["lastOutputEpochMD"] = lastDateEpoch
             # write csv file:
             if outputCSV:
                 with open(outPathCSV, 'w') as f:
                     csv.writer(f).writerows(csvStr)
                 print("created: '{}'".format(outPathCSV))
-                # update last outputed timestamp
-                settings[groupName]["books"][i]["lastOutputEpochCSV"] = lastDateEpoch
+                # update last outputted timestamp
+                if args.update_epoch:
+                    settings[groupName]["books"][i]["lastOutputEpochCSV"] = lastDateEpoch
             if combinedCSV != "":
+                # TODO: if file already exists (remove header from current csv being appended)
+                # TODO: print file created the first time it's created...
                 with open(args.out_folder + "/" + combinedCSV, 'a+') as f: # append or create file
                     csv.writer(f).writerows(csvStr)
-                settings[groupName]["books"][i]["lastOutputEpochCSV"] = lastDateEpoch
+                if args.update_epoch:
+                    settings[groupName]["books"][i]["lastOutputEpochCSV"] = lastDateEpoch
 
     #for bookName in bookList:
     for bookName in bookMap:

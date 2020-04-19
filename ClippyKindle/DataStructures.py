@@ -35,19 +35,27 @@ class Book:
         fullName = self.title
         return fullName + ("" if self.author == "" else " by {}".format(self.author))
 
-    def cut(self, cutDate):
+    def cutBefore(self, cutDate):
         """
         removes all data in Book object that was modified on or before provided timestamp
         parameters:
             cutDate (datetime.datetime): cutoff date for preserving data in this Book
         return (dict): dict storing the data in this book
         """
-        tmp = self.highlights
-        self.highlights = [obj for obj in tmp if obj.date.timestamp() > cutDate.timestamp()]
-        tmp = self.notes
-        self.notes = [obj for obj in tmp if obj.date.timestamp() > cutDate.timestamp()]
-        tmp = self.bookmarks
-        self.bookmarks = [obj for obj in tmp if obj.date.timestamp() > cutDate.timestamp()]
+        self.highlights = [obj for obj in self.highlights if obj.date.timestamp() > cutDate.timestamp()]
+        self.notes = [obj for obj in self.notes if obj.date.timestamp() > cutDate.timestamp()]
+        self.bookmarks = [obj for obj in self.bookmarks if obj.date.timestamp() > cutDate.timestamp()]
+
+    def cutAfter(self, cutDate):
+        """
+        removes all data in Book object that was modified on or after the provided timestamp
+        parameters:
+            cutDate (datetime.datetime): cutoff date for preserving data in this Book
+        return (dict): dict storing the data in this book
+        """
+        self.highlights = [obj for obj in self.highlights if obj.date.timestamp() < cutDate.timestamp()]
+        self.notes = [obj for obj in self.notes if obj.date.timestamp() < cutDate.timestamp()]
+        self.bookmarks = [obj for obj in self.bookmarks if obj.date.timestamp() < cutDate.timestamp()]
 
     def getLastDateEpoch(self):
         """
