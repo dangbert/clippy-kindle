@@ -85,7 +85,10 @@ class Book:
         """
         items = self.highlights + self.notes + self.bookmarks
         items = sortDictList([item.toDict() for item in items])
-        return {"title": self.title, "author": self.author, "items": items}
+        dateRange = self.getDateRange()
+        return {"title": self.title, "author": self.author, 
+                "dateStart": None if dateRange[0] == None else ClippyKindle.dateToStr(dateRange[0]),
+                "dateEnd": ClippyKindle.dateToStr(dateRange[1]), "items": items}
 
     def toCSV(self):
         """

@@ -163,6 +163,8 @@ def jsonToMarkdown(data, chapters=[]):
     return:
         (str) markdown representation of provided book data
     """
+    #DATE_FMT = ClippyKindle.DATE_FMT_OUT # includes time
+    DATE_FMT = "%B %d, %Y"
     titleStr = data["title"]
     titleStr += "" if data["author"] == None else " by {}".format(data["author"])
     #print("converting '{}'".format(titleStr))
@@ -172,7 +174,14 @@ def jsonToMarkdown(data, chapters=[]):
     # TODO: add dates for first and last highlight/note/bookmark...
     # and maybe stats on number of each type (TODO: have clippy.py store these in the json)
     md = ""
-    md += "# {}\n---\n\n".format(titleStr)
+    if len(data["items"]) == 0:
+        dateInfo = "* (No notes taken for this book)"
+    else:
+        # simplify formatting of date strings
+        dateStart = ClippyKindle.strToDate(data["dateStart"]).strftime(DATE_FMT)
+        dateEnd = ClippyKindle.strToDate(data["dateEnd"]).strftime(DATE_FMT)
+        dateInfo = "* Notes from: {} - {}".format(dateStart, dateEnd)
+    md += "# {}\n{}\n---\n\n".format(titleStr, dateInfo)
     cIndex = 0 # current index into chapters
     for item in data["items"]:
         # handle any chapters appearing before this item (that haven't yet been outputted)
