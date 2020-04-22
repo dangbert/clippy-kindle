@@ -66,6 +66,8 @@ def main():
         for path in [combinedMD, combinedCSV]:
             if path != "" and os.path.exists(args.out_folder + "/" + path):
                 os.remove(args.out_folder + "/" + path)
+        # TODO: add settings option for each group "separateFolder": True, (create folder for each group if needed)
+        #       use os.join() to append folder path to the filenames above (not below)
 
         # loop over books in this group
         for i in range(len(settings[groupName]["books"])):

@@ -99,7 +99,7 @@ class Book:
         csvRows = [["highlight", "associated_note", "highlight_loc", "note", "note_loc", "bookmark_loc"]]
 
         nIdx = 0 # running associated note index (for matching highlights with an overlapping note)
-        usedNotes = {} # dict containing the values of nIdx already associated with a highlight
+        usedNotes = {} # keys will be the indices in self.notes already associated with a highlight
         for i in range(0, max(len(self.highlights), len(self.notes), len(self.bookmarks))):
             curRow = []
             if i < len(self.highlights):
@@ -107,25 +107,20 @@ class Book:
                 # advance nIdx until its loc passes the current highlight:
                 while nIdx < len(self.notes)-1 and self.notes[nIdx].loc < self.highlights[i].loc:
                     nIdx += 1
-                #if "Sinsajo" in self.title: # for debugging
-                #    print("nIdx = {}/{} (loc {}), at highlight {}-{}".format(nIdx,len(self.notes), self.notes[nIdx].loc, self.highlights[i].loc, self.highlights[i].locEnd))
-                for off in [1,0]: # look at nIdx-1 and nIdx for a match
-                    if (0 <= nIdx-off < len(self.notes) and (nIdx-off not in usedNotes) and
-                            self.highlights[i].loc <= self.notes[nIdx-off].loc <= self.highlights[i].locEnd):
-                        ascNote = self.notes[nIdx-off].content
-                        usedNotes[nIdx-off] = True
+                #print("nIdx = note {}/{} (loc {}),\tcur highlight {}/{} (loc {}-{})".format(nIdx,len(self.notes), self.notes[nIdx].loc, i, len(self.highlights), self.highlights[i].loc, self.highlights[i].locEnd))
+                for offset in [1,0]:   # look at nIdx-1 and nIdx for a match
+                    tmpI = nIdx-offset # index to look at in self.notes
+                    if (0 <= tmpI < len(self.notes) and (tmpI not in usedNotes) and
+                            self.highlights[i].loc <= self.notes[tmpI].loc <= self.highlights[i].locEnd):
+                        ascNote = self.notes[tmpI].content
+                        usedNotes[tmpI] = True
+                        nIdx = tmpI+1           # advance nIdx
                         break
                 curRow += [self.highlights[i].content, ascNote, "{}-{}".format(self.highlights[i].loc, self.highlights[i].locEnd)]
             else:
                 curRow += ["", "", ""]
-            if i < len(self.notes):
-                curRow += [self.notes[i].content, self.notes[i].loc]
-            else:
-                curRow += ["", ""]
-            if i < len(self.bookmarks):
-                curRow += [self.bookmarks[i].loc]
-            else:
-                curRow += [""]
+            curRow += [self.notes[i].content, self.notes[i].loc] if i < len(self.notes) else ["", ""]
+            curRow += [self.bookmarks[i].loc] if i < len(self.bookmarks) else [""]
             csvRows.append(curRow)
         return csvRows
 
@@ -195,6 +190,7 @@ class Book:
         return book
 
 
+# TODO: don't store locType in Highlight/Note/Bookmark classes (just in Book)
 class Highlight:
     """ 
     Data structure for storing info about a single highlight
