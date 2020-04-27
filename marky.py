@@ -155,15 +155,21 @@ def jsonToMarkdown(data, chapters=[], omitNotes=False):
         dateEnd = ClippyKindle.strToDate(data["dateEnd"]).strftime(DATE_FMT)
         dateInfo = "* Notes from: {} - {}".format(dateStart, dateEnd)
     md += "# {}\n{}\n---\n\n".format(titleStr, dateInfo)
-    cIndex = 0 # current index into chapters
+
+    # current index into chapters (some chapters have subchapters, rightmost value is deepest nested subchapter index)
+    cIndex = [0] if len(chapters) > 0 else None
     for item in data["items"]:
         # handle any chapters appearing before this item (that haven't yet been outputted)
-        for i in range(cIndex, len(chapters)):
-            if chapters[cIndex]["loc"] > item["loc"]:
+        while cIndex != None:
+            chap = getChapterAt(cIndex, chapters)
+            if chap == None:
+                cIndex = None
                 break
-            md += "## {}\n".format(chapters[cIndex]["title"])
-            cIndex += 1
-
+            if chap["loc"] > item["loc"]:
+                break
+            # print number of '#' based on current chapter level
+            md += "#{} {}\n".format("#" * len(cIndex), chap["title"])
+            cIndex = cIndexAdvance(cIndex, chapters, verbose=True)
         if "content" in item:  # escape all '*' as '\*'
             item["content"] = item["content"].replace('*', '\*')
         if item["type"] == "highlight":
@@ -174,9 +180,53 @@ def jsonToMarkdown(data, chapters=[], omitNotes=False):
             md += "* [Bookmark -- {} {}]\n\n".format(locType, item["loc"])
 
     # print any chapters not yet reached:
-    for cIndex in range(cIndex, len(chapters)):
-        md += "## {}\n".format(chapters[cIndex]["title"])
+    while cIndex != None:
+        chap = getChapterAt(cIndex, chapters)
+        if chap == None:
+            cIndex = None
+            break
+        md += "#{} {}\n".format("#" * len(cIndex), chap["title"])
+        cIndex = cIndexAdvance(cIndex, chapters, verbose=True)
     return md
+
+def cIndexAdvance(cIndex, chapters, verbose=False, _tryDeeper=True):
+    """
+    helper function for iterating through a nested list of chapter dicts
+    params:
+        cIndex: array of indices into chapters
+        chapters: array of chapter dict objects (which individually may or may not have nested chapters
+    return (array or None): an updated cIndex that refers to the next chapter after the provided cIndex
+        (in depth first descent, BUT counting parent chapters as visited on the descent down)
+        returns None if we finish traversing chapters
+    """
+    # try to descend one level deeper:
+    if _tryDeeper:
+        if getChapterAt(cIndex + [0], chapters) != None:
+            return cIndex + [0]
+    # try advancing within current level:
+    cIndex[-1] += 1
+    if getChapterAt(cIndex, chapters) != None:
+        return cIndex
+    # try backing out one level (so we can advance within that level):
+    if len(cIndex) == 1:
+        return None # reached end of chapters
+    return cIndexAdvance(cIndex[:-1], chapters, _tryDeeper=False)
+
+def getChapterAt(cur_cIndex, cur_chapters):
+    """
+    helper function for getting a chapter object at a desired location within a nested list of chapter dicts
+    params:
+        cur_cIndex: array of indices into cur_chapters
+        cur_chapters: array of chapter dict objects (which individually may or may not have nested chapters
+        (i.e. store their own array of chaper dict objects (which are subchapters))
+    return: the chapter dict object found at provided cIndex (or None if not found)
+    """
+    if len(cur_cIndex) == 1:
+        # finally returns a chapter dict object (not an array)
+        return cur_chapters[cur_cIndex[0]] if (cur_cIndex[0] < len(cur_chapters)) else None
+    if "chapters" not in cur_chapters[cur_cIndex[0]] or not isinstance(cur_chapters[cur_cIndex[0]]["chapters"], list):
+        return None # unable to descend further as expected
+    return getChapterAt(cur_cIndex[1:], cur_chapters[cur_cIndex[0]]["chapters"])
 
 def updateSettings(bookList, settings=None, useDefaults=False):
     """
