@@ -126,7 +126,7 @@ If you want to create flashcards using this output, the first two columns are th
   * the flag `--update-outdate` saves the date of the most recently added item (highlight, note, or bookmark) in each book to my settings.json
   * and the flag `--latest-csv` forces the outputted csv files to only include items that were added since the last time I ran marky.py (with the `--update-outdate` flag)
 * In this way, the outputted csv file(s) will only ever contain newly added content (since the last time I created flashcards).
-  * This allows me to easily create my latest flashcards even if I'm only part of the way through a book- and later I can continue adding new highlight/notes in the book to be come future flashcards.
+  * This allows me to easily create my latest flashcards even if I'm only part of the way through a book- and later I can continue adding new highlight/notes in the book to become future flashcards.
   
 
 ### Having Issues?
