@@ -31,7 +31,7 @@ Wrote all parsed data to: './collection.json'
 
 
 ./marky.py collection.json output/
-No settings file provided, using defaults (creating both a .md and .csv file for every book)
+No settings file provided, using defaults (creating both a .md and .csv file for every book)...
 Or define custom settings now instead (y/n)? n
 Save settings to file for later use (y/n)? n
   

@@ -44,8 +44,8 @@ def main():
         settings = updateSettings(bookList, settings, useDefaults=False)
     else:
         # settings file not provided, so make settings here:
-        print("No settings file provided, using defaults... (create both a .md and .csv file for each book)")
-        useDefaults = not answerYesNo("Or define custom settings now (y/n)? ")
+        print("No settings file provided, using defaults (creating both a .md and .csv file for every book)...")
+        useDefaults = not answerYesNo("Or define custom settings now instead (y/n)? ")
         settings = updateSettings(bookList, settings=None, useDefaults=useDefaults)
         if not answerYesNo("Save settings to file for later use (y/n)? "):
             saveSettings = False
@@ -261,7 +261,7 @@ def updateSettings(bookList, settings=None, useDefaults=False):
     for name in [bookName for bookName in tmpMap if tmpMap[bookName] > 1]:
         print("NOTE: book appears {} times in settings: '{}'".format(tmpMap[name], name))
 
-    if len(newBooks) > 0:
+    if len(newBooks) > 0 and not useDefaults:
         print("{} book(s) must have their output settings defined...".format(len(newBooks)))
     # place each new book under desired group (default is "both"):
     for bookIndex, bookObj in zip(range(len(newBooks)), newBooks):
