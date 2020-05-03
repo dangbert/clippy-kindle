@@ -1,21 +1,73 @@
 # ClippyKindle
-* The program `clippy.py` will parse a "My Clippings.txt" file from a kindle and outputs it in a json format.
-* The program `marky.py` will parse the json file outputted by `clippy.py` and create a markdown file for each book therein.
+* The program `clippy.py` will parse a "My Clippings.txt" file from a kindle and convert it to a json file.
+* The program `marky.py` will parse the json file outputted by `clippy.py` and create a markdown and csv file for each book therein.
+  * Outputted markdown files are a way to conveniently see all your highlights / notes / bookmarks for a book in one place.
+  * Ouputted csv files can be used for additional purposes such as creating flashcards using your highlight / note pairs.
 ---
 
-### Usage:
+### How to use:
 ````bash
+# install python requirements:
 virtualenv env
 source env/bin/activate
 pip3 install -r requirements.txt
 
-mkdir -p out
-# parse clippings and store in json file 'collection.json':
-#   also defaults to outputting a .md and .csv file for each book found in "My Clippings.txt"
-./clippy.py "My Clippings.txt" out/
+# parse clippings and store them in a new file called 'collection.json':
+./clippy.py "My Clippings.txt"
+
+# now create a markdown and csv file for each book in your collection:
+mkdir output
+./marky.py collection.json output/
 ````
+
+* Example program output:
+````txt
+./clippy.py "My Clippings.txt"
+Parsing file: 'My Clippings.txt'
+
+Finished parsing data from 48 books!
+Removing duplicates (this may take a few minutes)...
+Wrote all parsed data to: './collection.json'
+
+
+./marky.py collection.json output/
+No settings file provided, using defaults (creating both a .md and .csv file for every book)
+Or define custom settings now instead (y/n)? n
+Save settings to file for later use (y/n)? n
+  
+Outputting files based on selected settings...
+created: 'output/Fahrenheit 451: A Novel by Bradbury, Ray.md'
+created: 'output/Fahrenheit 451: A Novel by Bradbury, Ray.csv'
+created: 'output/The 4 Hour Workweek.md'
+created: 'output/The 4 Hour Workweek.csv'
+created: 'output/Encuentro en el Ártico by Eoin Colfer.md'
+created: 'output/Encuentro en el Ártico by Eoin Colfer.csv'
+...
+````
+
+* If you elect to "define custom settings now" when running marky.py, you will be prompted to define for each book whether you want a markdown file outputted, and/or a csv file, or nothing outputted at all.
+  * To do this you will be prompted to place each book in one of the settings groups: "csvOnly", "both", "mdOnly", or "skip"
+  * If you elect to save your defined settings, you can reuse your settings next time you run marky.py by including the additional flag `--settings settings.json`.  e.g. `./marky.py collection.json output/ --settings settings.json`
+* You can also run `./clippy.py` and `./marky.py` with no additional parameters to see a list of all command line options available.
 * NOTE: To customize the format of the outputted markdown files simply edit the function `jsonToMarkdown()` in `marky.py`.
-* note: if you ever rename or move this folder, you have to delete/recreate the `env/` folder for it to work
+
+### CSV output files:
+The following is an example csv file output (shown as a table) for a spanish book I'm reading called "Encuentro en el Ártico"
+* While reading on my Kindle I highlighted words/sentences that were new to me, and I typed each highlight's english translations as a note.
+
+| highlight                                      | associated_note                             | highlight_loc | note                                        | note_loc | bookmark_loc | 
+|------------------------------------------------|---------------------------------------------|---------------|---------------------------------------------|----------|--------------| 
+| chantajear                                     | To blackmail                                | 4-4           | To blackmail                                | 4        |              | 
+| vencido                                        | Beaten/defeated                             | 25-25         | Beaten/defeated                             | 25       |              | 
+| el cabecilla                                   |                                             | 30-30         | Course, tack, route, direction              | 32       |              | 
+| rumbo                                          | Course, tack, route, direction              | 32-32         | Aghast, thunderstruck, stunned              | 55       |              | 
+| pasmado.                                       | Aghast, thunderstruck, stunned              | 55-55         | Marksmanship, aiming, aim                   | 61       |              | 
+| puntería                                       | Marksmanship, aiming, aim                   | 61-61         |                                             |          |              |  
+
+If you want to create flashcards using this output, the first two columns are the only ones you need to care about.
+
+* You can see that highlights with no note text have their "associated_note" field show up as blank.
+  * If this is the case you can double check that no note exists for it (meaning marky.py had trouble associating the two) by looking in the "note" column, which always contains every note made in the book in order.
 
 ### Having Issues?
 > This program is designed to explicitly report any errors parsing the clippings file if a provided file has a format issue. The hope is that it will be easy to identify the issue and fix the file or tweak this program.
@@ -26,10 +78,11 @@ mkdir -p out
 ### Inherent Limitations with "My Clippings.txt":
 * deleting or undoing a highlight in the book doesn't delete it from "My Clippings.txt" :(
   * However clippy.py will automatically detect and remove duplicate highlights, notes, and bookmarks
+    * This means that if you make a highlight that you want to adjust to be shorter or longer, you can delete in on the kindle and re-highlight the desired area.
+    * clippy.py will attempt to detect and remove sets of duplicates when it runs, keeping always the latest highlights and notes made while reading.
+    * You can disable the removal of duplicates by running `./clippy.py "My Clippings.txt" --keep-dups`
+    
 ---
-### Resources:
-* see "Google Books" section of [this](https://medium.com/@sawyerh/how-i-export-process-and-resurface-my-kindle-highlights-addc9de9af1a) for info on automating the download of the book's cover, etc...
-
 ### Why I made this?
 I tried several programs made by others but they had issues parsing my kindle's "My Clippings.txt" file so I made my own.  Also I wanted to have more control of the removal of duplicates and formatting of the outputted markdown file.
 
@@ -38,8 +91,5 @@ Programs I tried that didn't work for me personally:
 * [kindle_note_parser - bfreskura](https://github.com/bfreskura/kindle_note_parser)
 * [kindle-highlight-parser - honza](https://github.com/honza/kindle-highlight-parser)
 
-### Useful:
-````bash
-# list all pip requirements in environment to a file:
-pip3 freeze --local > requirements.txt
-````
+### Further Info Resources:
+* NOTE: To customize the format of the outputted markdown files simply edit the function `jsonToMarkdown()` in `marky.py`.
