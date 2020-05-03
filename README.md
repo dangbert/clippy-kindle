@@ -46,14 +46,15 @@ created: 'output/Encuentro en el Ártico by Eoin Colfer.csv'
 ````
 
 * If you elect to "define custom settings now" when running marky.py, you will be prompted to define for each book whether you want a markdown file outputted, and/or a csv file, or nothing outputted at all.
-  * To do this you will be prompted to place each book in one of the settings groups: "csvOnly", "both", "mdOnly", or "skip"
+  * To do this you will be prompted to place each book in one of the settings groups: "csvOnly", "both", "mdOnly", or "skip".
   * If you elect to save your defined settings, you can reuse your settings next time you run marky.py by including the additional flag `--settings settings.json`.  e.g. `./marky.py collection.json output/ --settings settings.json`
-* You can also run `./clippy.py` and `./marky.py` with no additional parameters to see a list of all command line options available.
 * NOTE: To customize the format of the outputted markdown files simply edit the function `jsonToMarkdown()` in `marky.py`.
+* **You can also run `./clippy.py` and `./marky.py` with no additional parameters to see a list of all command line options available.**
 
 ### CSV output files:
-The following is an example csv file output (shown as a table) for a spanish book I'm reading called "Encuentro en el Ártico"
-* While reading on my Kindle I highlighted words/sentences that were new to me, and I typed each highlight's english translations as a note.
+The following is an example csv file output (shown as a table) for a spanish book I'm reading called "Encuentro en el Ártico".
+* While reading on my Kindle I highlighted words/sentences that were new to me, and I typed each highlight's english translation as a note.
+  * [I installed a Spanish->English dictionary on my kindle](http://blog.mikeasoft.com/2011/01/05/free-as-in-gpl2-translation-dictionaries-for-the-kindle/) which helps with adding the english translation as a note (if needed I'll  occasionally look up words on my phone to help with adding the english translation note).
 
 | highlight                                      | associated_note                             | highlight_loc | note                                        | note_loc | bookmark_loc | 
 |------------------------------------------------|---------------------------------------------|---------------|---------------------------------------------|----------|--------------| 
@@ -68,6 +69,65 @@ If you want to create flashcards using this output, the first two columns are th
 
 * You can see that highlights with no note text have their "associated_note" field show up as blank.
   * If this is the case you can double check that no note exists for it (meaning marky.py had trouble associating the two) by looking in the "note" column, which always contains every note made in the book in order.
+
+### Creating Anki Flashcards From a CSV File:
+1. Edit your csv file in a spreadsheet program to have just two columns with no headers:
+
+|                                                |                                             | 
+|------------------------------------------------|---------------------------------------------| 
+| chantajear                                     | To blackmail                                | 
+| vencido                                        | Beaten/defeated                             | 
+| el cabecilla                                   | The ringleader                              | 
+| rumbo                                          | Course, tack, route, direction              | 
+| pasmado.                                       | Aghast, thunderstruck, stunned              | 
+| puntería                                       | Marksmanship, aiming, aim                   | 
+
+  * Also manually populate any missing notes as needed so flashcards can have two sides.
+
+2. [Download Anki](https://apps.ankiweb.net/)  for your computer.
+
+3. Click *File* > *Import* in Anki and select your csv file.
+<img src="https://i.imgur.com/K9FC05o.png" alt="main view" width="700">
+
+  * By using the flashcard type *"Basic (and reversed card)"* (set in the top left), each row in the csv will essentially become two separate flashcards.  One with the spanish side on the front side, and another with the english side as the front.
+  * In the top right select the name of the deck you want to place the cards in (or create a new one).
+  * Lastly click "Import" to finish importing your flashcards into your Anki deck.
+4. I created an account on [ankiweb.net](https://ankiweb.net/) which allows me to "Sync" me decks to the Anki app on my phone so I can study my flashcards there.
+
+#### Pro Tip for Creating Flashcards:
+* In my settings.json file for marky.py, I added an additional custom settings groups, and moved my spanish language books to this section as shown below:
+````json
+"spanish": {
+  "outputMD": false,
+  "outputCSV": false,
+  "combinedMD": "",
+  "combinedCSV": "COMBINED-spanish.csv",
+  "books": [
+    {
+      "name": "Los juegos del hambre by Suzanne Collins",
+      "chapters": []
+    },
+    {
+      "name": "Encuentro en el \u00c1rtico by Eoin Colfer",
+      "chapters": []
+    }
+  ]
+},
+````
+  * By setting the field *"combinedCSV"* to a filename, the csv data for all the books in that group will be also be combined and outputted into a single csv file.
+    * (I then set *"outputCSV"* to false for these groups as I don't care about additionally having a separate csv file for each book).
+
+* My full workflow is to every now and then, copy the latest "My Clippings.txt" from my Kindle, and then run:
+````bash
+./clippy.py "My Clippings.txt"
+./marky.py collection.json output/ --settings settings.json --latest-csv --update-outdate
+````
+* NOTE:
+  * the flag `--update-outdate` saves the date of the most recently added item (highlight, note, or bookmark) in each book to my settings.json
+  * and the flag `--latest-csv` forces the outputted csv files to only include items that were added since the last time I ran marky.py (with the `--update-outdate` flag)
+* In this way, the outputted csv file(s) will only ever contain newly added content (since the last time I created flashcards).
+  * This allows me to easily create my latest flashcards even if I'm only part of the way through a book- and later I can continue adding new highlight/notes in the book to be come future flashcards.
+  
 
 ### Having Issues?
 > This program is designed to explicitly report any errors parsing the clippings file if a provided file has a format issue. The hope is that it will be easy to identify the issue and fix the file or tweak this program.
@@ -90,6 +150,3 @@ Programs I tried that didn't work for me personally:
 * [fyodor - rccavalcanti](https://github.com/rccavalcanti/fyodor)
 * [kindle_note_parser - bfreskura](https://github.com/bfreskura/kindle_note_parser)
 * [kindle-highlight-parser - honza](https://github.com/honza/kindle-highlight-parser)
-
-### Further Info Resources:
-* NOTE: To customize the format of the outputted markdown files simply edit the function `jsonToMarkdown()` in `marky.py`.
