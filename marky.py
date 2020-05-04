@@ -175,7 +175,10 @@ def jsonToMarkdown(data, chapters=[], omitNotes=False):
         if item["type"] == "highlight":
             md += "* {} -- [{} {}]\n\n".format(item["content"], locType, item["loc"])
         if item["type"] == "note" and not omitNotes:
-            md += "> {} -- [{} {}]\n\n".format(item["content"], locType, item["loc"])
+            # two spaces at the end of a line creates a line break after
+            #   https://meta.stackexchange.com/a/186647
+            tmp = item["content"].replace("\n", "  \n> ")
+            md += "> {} -- [{} {}]\n\n".format(tmp, locType, item["loc"])
         if item["type"] == "bookmark":
             md += "* [Bookmark -- {} {}]\n\n".format(locType, item["loc"])
 
