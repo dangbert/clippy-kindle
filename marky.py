@@ -30,6 +30,8 @@ def main():
     args = parser.parse_args()
 
     outPath = args.out_folder + ("" if args.out_folder.endswith("/") else "/")
+    if not os.path.isdir(outPath):
+        os.mkdir(outPath)
     bookList = ClippyKindle.ClippyKindle.parseJsonFile(args.json_file)
     bookMap = {} # map book titles to its respective Book object
     for bookObj in bookList:
