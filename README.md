@@ -5,7 +5,7 @@
   * Ouputted csv files can be used for additional purposes such as creating flashcards using your highlight / note pairs.
 ---
 
-[<img src="https://i.imgur.com/cQGH8Zl.png" alt="video tutorial" width="600">](https://youtu.be/3DoNWYdSNcs)
+[<img src="https://i.imgur.com/mDjy5VL.png" alt="video tutorial" width="600">](https://youtu.be/3DoNWYdSNcs)
 
 
 ### How to use:
