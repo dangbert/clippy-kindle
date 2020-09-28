@@ -156,3 +156,4 @@ Programs I tried that didn't work for me personally:
 
 ### Other related projects
 * [kindle_vocab_anki - wzyboy](https://github.com/wzyboy/kindle_vocab_anki)
+* [Kindle Highlights Import (Anki Extension)](https://ankiweb.net/shared/info/1525149970)
