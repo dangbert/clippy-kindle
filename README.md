@@ -153,3 +153,6 @@ Programs I tried that didn't work for me personally:
 * [fyodor - rccavalcanti](https://github.com/rccavalcanti/fyodor)
 * [kindle_note_parser - bfreskura](https://github.com/bfreskura/kindle_note_parser)
 * [kindle-highlight-parser - honza](https://github.com/honza/kindle-highlight-parser)
+
+### Other related projects
+* [kindle_vocab_anki - wzyboy](https://github.com/wzyboy/kindle_vocab_anki)
