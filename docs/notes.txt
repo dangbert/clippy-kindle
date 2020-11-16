@@ -1,0 +1,24 @@
+sphinx
+
+mkdir docs
+sphinx-quickstart # (say 'y' to separate source and build folders)
+
+
+vim source/conf.py # edit "Path setup" section at top, add:
+import os
+import sys
+# these paths are relative to the "source" directory containing this script:
+sys.path.insert(0, os.path.abspath('../..')) # needed to prevent import errors!
+
+add 'sphinx.ext.autodoc' to the extensions array in conf.py
+set:
+  html_theme = 'sphinx_rtd_theme'
+
+add '_modules/modules.rst' to index.rst under the toctree (with a blank line above it)
+
+
+building docs:
+
+# https://www.sphinx-doc.org/en/master/man/sphinx-apidoc.html
+sphinx-apidoc -o source/_modules ..
+make html

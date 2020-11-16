@@ -1,0 +1,5 @@
+__pycache__/
+build/
+
+# TODO: maybe should start tracking this later?
+source/_modules/
