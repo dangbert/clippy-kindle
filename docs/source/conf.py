@@ -3,6 +3,7 @@
 # This file only contains a selection of the most common options. For a full
 # list see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
+# see also:  https://samnicholls.net/2016/06/15/how-to-sphinx-readthedocs/#fn-841-3
 
 # -- Path setup --------------------------------------------------------------
 
@@ -29,8 +30,8 @@ author = 'Daniel Engbert'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinx.ext.autodoc',
-    'sphinx.ext.napoleon'
+    'sphinx.ext.autodoc',  # https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html
+    'sphinx.ext.napoleon'  # https://www.sphinx-doc.org/en/master/usage/extensions/napoleon.html
 ]
 
 # Add any paths that contain templates here, relative to this directory.

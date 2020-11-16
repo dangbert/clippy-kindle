@@ -1,5 +1,5 @@
 __pycache__/
 build/
 
-# TODO: maybe should start tracking this later?
+# note: _modules dir must be tracked for readthedocs.org to work
 #source/_modules/

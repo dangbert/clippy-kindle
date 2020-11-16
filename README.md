@@ -1,4 +1,6 @@
 # ClippyKindle
+[![Documentation Status](https://readthedocs.org/projects/clippy-kindle/badge/?version=latest)](https://clippy-kindle.readthedocs.io/en/latest/?badge=latest)
+
 * The program `clippy.py` will parse a "My Clippings.txt" file from a kindle and convert it to a json file.
 * The program `marky.py` will parse the json file outputted by `clippy.py` and create a markdown and csv file for each book therein.
   * Outputted markdown files are a way to conveniently see all your highlights / notes / bookmarks for a book in one place.
