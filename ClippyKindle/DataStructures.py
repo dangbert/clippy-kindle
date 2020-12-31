@@ -2,12 +2,17 @@ from datetime import datetime
 import ClippyKindle
 
 class Book:
-    """ 
-    Data structure for storing all highlights/notes/bookmarks for a given book
+    """
+    Data structure for storing all highlights/notes/bookmarks for a given book.
+
     """
     def __init__(self, title, author=""):
         """
-        Initialize a Book object
+        Initialize a Book object.
+
+        Args:
+            title (str): Title of the book.
+            author (str): Optional; Author of the book.
         """
         self.title = title.strip()
         self.author = author.strip()
@@ -39,9 +44,10 @@ class Book:
     def cutBefore(self, cutDate):
         """
         removes all data in Book object that was modified on or before provided timestamp
-        parameters:
-            cutDate (datetime.datetime): cutoff date for preserving data in this Book
-        return (dict): dict storing the data in this book
+        Args:
+            cutDate (datetime.datetime): cutoff date for preserving data in this Book.
+        Returns:
+            None
         """
         self.highlights = [obj for obj in self.highlights if obj.date.timestamp() > cutDate.timestamp()]
         self.notes = [obj for obj in self.notes if obj.date.timestamp() > cutDate.timestamp()]
@@ -50,9 +56,10 @@ class Book:
     def cutAfter(self, cutDate):
         """
         removes all data in Book object that was modified on or after the provided timestamp
-        parameters:
+        Args:
             cutDate (datetime.datetime): cutoff date for preserving data in this Book
-        return (dict): dict storing the data in this book
+        Returns:
+            None
         """
         self.highlights = [obj for obj in self.highlights if obj.date.timestamp() < cutDate.timestamp()]
         self.notes = [obj for obj in self.notes if obj.date.timestamp() < cutDate.timestamp()]
@@ -64,7 +71,8 @@ class Book:
         retrieves the datetime of the earliest and latest item (note, highlight, or bookmark) stored in this book
         (the datetime of an item is the timestamp at which it was originally added to the book)
 
-        return: (tuple of datetime.datetime objects) first object in tuple is the earliest date, second is the latest
+        Returns:
+            (tuple of datetime.datetime objects) first object in tuple is the earliest date, second is the latest
             (if book has no items, earliest will be returned as None, and the latest as the datetimes at epoch 0)
         """
         latest = datetime.fromtimestamp(0)
@@ -81,7 +89,8 @@ class Book:
     def toDict(self):
         """
         converts this book object to a dict (which can be jsonified later)
-        return (dict): dict storing the data in this book
+        Returns:
+            (dict): A dict storing all the data in this book.
         """
         items = self.highlights + self.notes + self.bookmarks
         items = sortDictList([item.toDict() for item in items])
@@ -93,7 +102,8 @@ class Book:
     def toCSV(self):
         """
         converts this book object to a CSV file (columns sorted by location in book increasing)
-        return (list of lists): array of lists representing each row (can be written to csv file later)
+        Returns:
+            Array of lists representing each row (can be written to csv file later).
         """
         self.sort(removeDups=False) # in case user didn't sort first
         csvRows = [["highlight", "associated_note", "highlight_loc", "note", "note_loc", "bookmark_loc"]]
@@ -130,11 +140,12 @@ class Book:
         (increasing) location in the book (ties are broken by the date recorded)
         optionally removes duplicates within each array
 
-        parameters:
+        Args:
             removeDups (bool): set True to remove suspected duplicates within self.notes,
-                               self.highlights, self.bookmarks. the oldest item in each set of
-                               duplicates is the one preserved (the one last modified)
-        return: None
+                self.highlights, self.bookmarks. the oldest item in each set of
+                duplicates is the one preserved (the one last modified)
+        Returns:
+            None
         """
         # sort self.highlights:
         tmp = sortDictList([item.toDict() for item in self.highlights])
@@ -154,9 +165,11 @@ class Book:
         def removeDuplicates(objList):
             """
             removes duplicate objects in provided list of sorted objects
-            parameters:
+            Args:
                 objList (list): list of objects where each has method isDuplicate() defined
-            returns (list): modified list of provided objects (some possibly removed)
+
+            Returns:
+                Modified list of provided objects (some possibly removed).
             """
             i = 0
             while True:
@@ -176,7 +189,8 @@ class Book:
     @staticmethod
     def fromDict(d):
         """
-        Returns a new Book object populated with the values from a provided dict (e.g. read from a JSON file)
+        Returns:
+            A new Book object populated with the values from a provided dict (e.g. read from a JSON file)
         """
         book = Book(d["title"], d["author"])
         for item in d["items"]:
@@ -199,7 +213,7 @@ class Highlight:
         """
         Highlight class constructor
 
-        parameters:
+        Args:
             loc tuple: (int locStart, int locEnd)
             locType (str): "page or "location" (identifies what location type this highlight uses)
             date (datetime.datetime): date this highlight was made
@@ -214,6 +228,9 @@ class Highlight:
     def __repr__(self):
         """
         represents this object as a string when it's printed
+
+        Returns:
+            None
         """
         return "<Highlight object representing: {} {}-{} from {}, content (preview): '{}'>"\
                 .format(self.locType, self.loc, self.locEnd, self.date, self.content)
@@ -223,11 +240,12 @@ class Highlight:
         """
         returns true if provided Highlight object can be considered a duplicate of this object
 
-        parameters:
+        Args:
             other (Highlight): other Highlight object to compare this object to
             fuzzyMatch (bool): true if we should consider Highlights with overlapping content (but
                                not exactly the same) to be duplicates (default: True)
-        return (bool): true or false
+        Returns:
+            (bool): true or false.
         """
         # duplicates will have similar locations
         if abs(self.loc - other.loc) <= (1 if self.locType == "page" else 10):
@@ -247,7 +265,8 @@ class Highlight:
 
     def toDict(self):
         """
-        Returns dict representing this object
+        Returns:
+            (dict): A dict representing this object.
         """
         return {"type": "highlight", "loc": self.loc, "locEnd": self.locEnd, "locType": self.locType,
                 "dateStr": ClippyKindle.dateToStr(self.date), "content": self.content}
@@ -255,7 +274,8 @@ class Highlight:
     @staticmethod
     def fromDict(d):
         """
-        Returns a new Highlight object populated with the values from a provided dict (created with toDict())
+        Returns:
+            A new Highlight object populated with the values from a provided dict (created with toDict()).
         """
         return Highlight((d["loc"], d["locEnd"]), d["locType"],
                 ClippyKindle.strToDate(d["dateStr"]), d["content"])
@@ -270,7 +290,7 @@ class Note:
         """
         Note class constructor
 
-        parameters:
+        Args:
             loc (int): page or location value this note was made at
             locType (str): "page or "location" (identifies what location type this highlight uses)
             date (datetime.datetime): date this highlight was made
@@ -285,11 +305,12 @@ class Note:
         """
         returns true if provided Note object can be considered a duplicate of this object
 
-        parameters:
+        Args:
             other (Note): other Note object to compare this object to
             fuzzyMatch (bool): true if we should consider Notes with overlapping content (but not
                                exactly the same) to be duplicates (default: True)
-        return (bool): true or false
+        Returns:
+            (bool): true or false
         """
         # duplicate notes will have the exact the same location
         # (but remember that nearby (potentially noted) words in ebook can have the same location)
@@ -311,6 +332,8 @@ class Note:
     def __repr__(self):
         """
         represents this object as a string when it's printed
+        Returns:
+            None
         """
         return "<Note object representing: {} {} from {}, content (preview): '{}'>"\
                 .format(self.locType, self.loc, self.date, self.content[:20])
@@ -318,7 +341,8 @@ class Note:
 
     def toDict(self):
         """
-        Returns dict representing this object
+        Returns:
+            (dict): A dict representing this object
         """
         return {"type": "note", "loc": self.loc, "locType": self.locType,
                 "dateStr": ClippyKindle.dateToStr(self.date), "content": self.content}
@@ -326,7 +350,8 @@ class Note:
     @staticmethod
     def fromDict(d):
         """
-        Returns a new Note object populated with the values from a provided dict (created with toDict())
+        Returns:
+            A new Note object populated with the values from a provided dict (created with toDict())
         """
         return Note(d["loc"], d["locType"], ClippyKindle.strToDate(d["dateStr"]), d["content"])
 
@@ -340,7 +365,7 @@ class Bookmark:
         """
         Bookmark class constructor
 
-        parameters:
+        Args:
             loc (int): page or location value this note was made at
             locType (str): "page or "location" (identifies what location type this highlight uses)
             date (datetime.datetime): date this highlight was made
@@ -353,6 +378,8 @@ class Bookmark:
     def __repr__(self):
         """
         represents this object as a string when it's printed
+        Returns:
+            None
         """
         return "<Bookmark object representing: {} {} from {}>".format(self.locType, self.loc, self.date)
 
@@ -360,22 +387,25 @@ class Bookmark:
         """
         returns true if provided Bookmark object can be considered a duplicate of this object
 
-        parameters:
+        Args:
             other (Bookmark): other Bookmark object to compare this object to
-        return (bool): true or false
+        Returns:
+            (bool): true or false.
         """
         return self.loc == other.loc
 
     def toDict(self):
         """
-        Returns dict representing this object
+        Returns:
+            (dict): Dict representing this object.
         """
         return {"type": "bookmark", "loc": self.loc, "locType": self.locType,
                 "dateStr": ClippyKindle.dateToStr(self.date)}
     @staticmethod
     def fromDict(d):
         """
-        Returns a new Bookmark object populated with the values from a provided dict (created with toDict())
+        Returns:
+            (Bookmark): A new Bookmark object populated with the values from a provided dict (created with toDict())
         """
         return Bookmark(d["loc"], d["locType"], ClippyKindle.strToDate(d["dateStr"]))
 
@@ -386,10 +416,11 @@ def sortDictList(arr):
     helper function for sorting a list of objects (representing Hightlight/Note/Bookmark objects)
     in order by (increasing) page/location within the book (ties broken by date recorded).
 
-    parameters:
+    Args:
         arr (list of dict objects): list of dicts that contain (at least) the fields "loc" and "dateStr"
             (these dicts should have created by a call of toDict())
-    return (list of dict objects): original list of dicts except now reordered
+    Returns:
+        (list of dict objects): original list of dicts except now reordered
     """
     for item in arr:
         dateEpoch = ClippyKindle.strToDate(item["dateStr"]).timestamp()
@@ -401,8 +432,9 @@ def sortDictList(arr):
 
 def GCS(string1, string2):
     """
-    returns the greatest (longest) common substring between two provided strings
-    (returns empty string if there is no overlap)
+    Returns:
+        (str): The greatest (longest) common substring between two provided strings
+        (returns empty string if there is no overlap)
     """
     # this function copied directly from:
     #   https://stackoverflow.com/a/42882629
