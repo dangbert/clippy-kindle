@@ -146,6 +146,9 @@ If you want to create flashcards using this output, the first two columns are th
     * This means that if you make a highlight that you want to adjust to be shorter or longer, you can delete in on the kindle and re-highlight the desired area.
     * clippy.py will attempt to detect and remove sets of duplicates when it runs, keeping always the latest highlights and notes made while reading.
     * You can disable the removal of duplicates by running `./clippy.py "My Clippings.txt" --keep-dups`
+ * DRM protected ebooks (which are common) place a limit on the percent of the book that can be highlighted on the kindle (e.g. 10%).  Your kindle doesn't warn you when you hit the limit, you'll still be able to highlight passages but their corresponding entries in "My Clippings.txt" will simply have "<You have reached the clipping limit for this item>" as their content.  Going back and deleting earlier highlights doesn't help either, once you hit the limit for a book you appear to be stuck, although you can continue typing notes and setting bookmarks.
+   * [more info here](https://www.amazonforum.com/s/question/0D54P00006zIF6GSAW/looking-for-a-definition-of-clipping-limits)
+   * possible workaround discussed [here](https://www.mobileread.com/forums/showthread.php?t=238989) and [here](https://www.mobileread.com/forums/showthread.php?p=1927698#post1927698)
     
 ---
 ### Why I made this?
