@@ -14,6 +14,19 @@ HIGHLIGHT_START = "- Your Highlight"
 BOOKMARK_START = "- Your Bookmark on"
 NOTE_START = "- Your Note on"
 
+# when we try to parse the first line of a highlight, these formats will be tried until one succeeds:
+HIGHLIGHT_FORMATS = [
+    "- Your Highlight {:l} {locType:l} {loc1:d}-{loc2:d} | Added on {date}",            # case like: "- Your Highlight on Location 4749-4749 | Added on Saturday, January 4, 2020 10:20:02 AM"
+    "- Your Highlight {:l} {locType:l} {loc1:d} | Added on {date}",                     # case like: "- Your Highlight on page 7 | Added on Sunday, May 6, 2018 1:42:40 AM"
+    "- Your Highlight {:l} {:l} {:d} | {locType:l} {loc1:d}-{loc2:d} | Added on {date}" # case like: "- Your Highlight on page 22 | location 325-325 | Added on Thursday, 15 June 2017 18:23:21"
+]
+BOOKMARK_FORMATS = [
+    "- Your Bookmark on {locType:l} {loc:d} | Added on {date}" # case like: "- Your Bookmark on Location 604 | Added on Friday, November 25, 2016 12:13:59 AM"
+]
+NOTE_FORMATS = [
+    "- Your Note on {locType:l} {loc:d} | Added on {date}"
+]
+
 DATE_FMT_OUT = "%B %d, %Y %H:%M:%S" # format string for outputting datetime objects
 ######## helper functions
 def strToDate(dateStr):
@@ -164,27 +177,21 @@ class ClippyKindle:
             - Your Highlight on Location 4749-4749 | Added on Saturday, January 4, 2020 10:20:02 AM
             me pongo en cuclillas
             """
-            res = parse.parse("- Your Highlight {:l} {:l} {:d}-{:d} | Added on {}", contentLines[1])
+            res = None
+            for formatStr in HIGHLIGHT_FORMATS:
+                res = parse.parse(formatStr, contentLines[1])
+                if res != None:
+                    break
             if res == None:
-                # try again for rare case like "- Your Highlight on page 7 | Added on Sunday, May 6, 2018 1:42:40 AM"
-                res = parse.parse("- Your Highlight {:l} {:l} {:d} | Added on {}", contentLines[1])
-                if res == None:
-                    # try again for case "- Your Highlight on page 22 | location 325-325 | Added on Thursday, 15 June 2017 18:23:21"
-                    res = parse.parse("- Your Highlight {:l} {:l} {:d} | {:l} {:d}-{:d} | Added on {}", contentLines[1])
-                    if res == None:
-                        return "ERROR: parse.parse failed on highlight"
-                    res = [res[3], res[4], res[5], res[6]] # take loc to match original format
-                else:
-                    res = [res[1], res[2], res[2], res[3]] # use page number twice to match original  format
-            else:
-                res = [res[1], res[2], res[3], res[4]] # ignore first word (on/at)
+                return "ERROR: unable to parse highlight (in unexpected/unsupported format)"
+
             try:
-                date = parser.parse(res[3])
-                highlight = DataStructures.Highlight((int(res[1]), int(res[2])), res[0].lower(), date, contentLines[2])
-                #print("created: " + str(highlight))
+                date = parser.parse(res['date'])
+                loc2 = res['loc2'] if 'loc2' in res else res['loc1'] # if loc2 not set, use loc1 in its place
+                highlight = DataStructures.Highlight((res['loc1'], loc2), res['locType'].lower(), date, contentLines[2])
                 allBooks[bookId].highlights.append(highlight)
             except ValueError:                  # due to date parsing or casting page/loc as an int
-                return "ERROR: unable to parse date or page/location in highlight"
+                return "ERROR: unable to parse date in highlight"
 
         elif contentLines[1].startswith(BOOKMARK_START) and len(contentLines) == 2:
             # parse bookmark:
@@ -193,16 +200,20 @@ class ClippyKindle:
             Do Androids Dream of Electric Sheep? (Dick, Philip K.)
             - Your Bookmark on Location 604 | Added on Friday, November 25, 2016 12:13:59 AM
             """
-            res = parse.parse("- Your Bookmark on {} {} | Added on {}", contentLines[1])
+            res = None
+            for formatStr in BOOKMARK_FORMATS:
+                res = parse.parse(formatStr, contentLines[1])
+                if res != None:
+                    break
             if res == None:
-                return "ERROR: parse.parse failed in bookmark"
+                return "ERROR: unable to parse bookmark (in unexpected/unsupported format)"
+
             try:
-                date = parser.parse(res[2])
-                bookmark = DataStructures.Bookmark(int(res[1]), res[0].lower(), date)
-                #print("created: " + str(bookmark))
+                date = parser.parse(res['date'])
+                bookmark = DataStructures.Bookmark(res['loc'], res['locType'].lower(), date)
                 allBooks[bookId].bookmarks.append(bookmark)
             except ValueError:
-                return "ERROR: unable to parse date or page/location in bookmark"
+                return "ERROR: unable to parse date in bookmark"
 
         elif contentLines[1].startswith(NOTE_START) and len(contentLines) >= 3:
             # parse note:
@@ -218,22 +229,26 @@ class ClippyKindle:
             Cite specific lines from the text to illustrate where you saw the elements/themes.
             ==========
             """
-            res = parse.parse("- Your Note on {} {} | Added on {}", contentLines[1])
+            res = None
+            for formatStr in NOTE_FORMATS:
+                res = parse.parse(formatStr, contentLines[1])
+                if res != None:
+                    break
             if res == None:
-                return "ERROR: parse.parse failed in note"
+                return "ERROR: unable to parse note (in unexpected/unsupported format)"
+
             try:
-                date = parser.parse(res[2])
+                date = parser.parse(res['date'])
                 content = section[2:] # get just the content lines of the note
                 # remove first and trailing empty lines if they exist (notes are always preceeded by an empty line)
                 content = content[1:] if content[0] == "" and len(content) > 1 else content
                 while len(content) > 1 and content[-1] == "":
                     content = content[:-1]
 
-                note = DataStructures.Note(int(res[1]), res[0].lower(), date, '\n'.join(str(line) for line in content))
-                #print("created: " + str(note))
+                note = DataStructures.Note(res['loc'], res['locType'].lower(), date, '\n'.join(str(line) for line in content))
                 allBooks[bookId].notes.append(note)
             except ValueError:
-                return "ERROR: unable to parse date or page/location in note"
+                return "ERROR: unable to parse date in note"
 
         else:
             return "ERROR: not sure how to parse section"
