@@ -10,7 +10,7 @@ from datetime import datetime
 from ClippyKindle import DataStructures
 
 # NOTE: you can also use a config.ini to define config https://stackoverflow.com/a/38275781
-HIGHLIGHT_START = "- Your Highlight on"
+HIGHLIGHT_START = "- Your Highlight"
 BOOKMARK_START = "- Your Bookmark on"
 NOTE_START = "- Your Note on"
 
@@ -164,13 +164,20 @@ class ClippyKindle:
             - Your Highlight on Location 4749-4749 | Added on Saturday, January 4, 2020 10:20:02 AM
             me pongo en cuclillas
             """
-            res = parse.parse("- Your Highlight on {} {}-{} | Added on {}", contentLines[1])
+            res = parse.parse("- Your Highlight {:l} {:l} {:d}-{:d} | Added on {}", contentLines[1])
             if res == None:
                 # try again for rare case like "- Your Highlight on page 7 | Added on Sunday, May 6, 2018 1:42:40 AM"
-                res = parse.parse("- Your Highlight on {} {} | Added on {}", contentLines[1])
+                res = parse.parse("- Your Highlight {:l} {:l} {:d} | Added on {}", contentLines[1])
                 if res == None:
-                    return "ERROR: parse.parse failed on highlight"
-                res = [res[0], res[1], res[1], res[2]] # use page/loc number twice to match other format
+                    # try again for case "- Your Highlight on page 22 | location 325-325 | Added on Thursday, 15 June 2017 18:23:21"
+                    res = parse.parse("- Your Highlight {:l} {:l} {:d} | {:l} {:d}-{:d} | Added on {}", contentLines[1])
+                    if res == None:
+                        return "ERROR: parse.parse failed on highlight"
+                    res = [res[3], res[4], res[5], res[6]] # take loc to match original format
+                else:
+                    res = [res[1], res[2], res[2], res[3]] # use page number twice to match original  format
+            else:
+                res = [res[1], res[2], res[3], res[4]] # ignore first word (on/at)
             try:
                 date = parser.parse(res[3])
                 highlight = DataStructures.Highlight((int(res[1]), int(res[2])), res[0].lower(), date, contentLines[2])
