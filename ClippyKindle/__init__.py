@@ -11,8 +11,8 @@ from ClippyKindle import DataStructures
 
 # NOTE: you can also use a config.ini to define config https://stackoverflow.com/a/38275781
 HIGHLIGHT_START = "- Your Highlight"
-BOOKMARK_START = "- Your Bookmark on"
-NOTE_START = "- Your Note on"
+BOOKMARK_START = "- Your Bookmark"
+NOTE_START = "- Your Note"
 
 # when we try to parse the first line of a highlight, these formats will be tried until one succeeds:
 HIGHLIGHT_FORMATS = [
@@ -21,10 +21,12 @@ HIGHLIGHT_FORMATS = [
     "- Your Highlight {:l} {:l} {:d} | {locType:l} {loc1:d}-{loc2:d} | Added on {date}" # case like: "- Your Highlight on page 22 | location 325-325 | Added on Thursday, 15 June 2017 18:23:21"
 ]
 BOOKMARK_FORMATS = [
-    "- Your Bookmark on {locType:l} {loc:d} | Added on {date}" # case like: "- Your Bookmark on Location 604 | Added on Friday, November 25, 2016 12:13:59 AM"
+    "- Your Bookmark {:l} {locType:l} {loc:d} | Added on {date}",            # case like: "- Your Bookmark on Location 604 | Added on Friday, November 25, 2016 12:13:59 AM"
+    "- Your Bookmark {:l} {:l} {:d} | {locType:l} {loc:d} | Added on {date}" # case like: "- Your Bookmark on page 262 | location 3686 | Added on Friday, 23 October 2020 21:24:06"
 ]
 NOTE_FORMATS = [
-    "- Your Note on {locType:l} {loc:d} | Added on {date}"
+    "- Your Note {:l} {locType:l} {loc:d} | Added on {date}",                # case like: "- Your Note on page 16 | location 231 | Added on Monday, 7 December 2020 19:19:23"
+    "- Your Note {:l} {:l} {:d} | {locType:l} {loc:d} | Added on {date}",    # case like: "- Your Note on page 16 | location 231 | Added on Monday, 7 December 2020 19:19:23"
 ]
 
 DATE_FMT_OUT = "%B %d, %Y %H:%M:%S" # format string for outputting datetime objects
