@@ -2,6 +2,7 @@ import os
 import sys
 import parse
 import json
+import chardet
 
 from dateutil import parser
 from dateutil.relativedelta import *
@@ -97,7 +98,11 @@ class ClippyKindle:
         allBooks = {} # dict mapping book title/author string to a Book object
         lineNum = 0
         numErrors = 0
-        with open(fname, 'r') as fh:
+        # check file encoding (prevents problem on windows) https://stackoverflow.com/a/32774741
+        with open(fname, 'rb') as f:
+            raw = f.read(32) # at most 32 bytes are returned
+            encoding = chardet.detect(raw)['encoding']
+        with open(fname, encoding=encoding) as fh:
             allLines = fh.readlines()
             section = []
             lineNum = 0
