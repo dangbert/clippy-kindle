@@ -159,7 +159,7 @@ Programs I tried that didn't work for me personally:
 * [kindle_note_parser - bfreskura](https://github.com/bfreskura/kindle_note_parser)
 * [kindle-highlight-parser - honza](https://github.com/honza/kindle-highlight-parser)
 
-> Note that I think these programs didn't work for me likely due to nuanced differences between how different Kindle versions format their "My Clippings.txt" file slighlty differently.  With this repository my goal is to support as many types as possible, and to print really clear errors when parsing fails so it's obvious which part(s) of the file failed so the program can be fixed to handle the edge cases that surfaced.
+> Note that I think these programs didn't work for me likely due to nuanced differences between how different Kindle versions format their "My Clippings.txt" file slightly differently.  With this repository my goal is to support as many types as possible, and to print really clear errors when parsing fails so it's obvious which part(s) of the file failed so the program can be fixed to handle the edge cases that surfaced.
 
 ### Other related projects
 * [kindle_vocab_anki - wzyboy](https://github.com/wzyboy/kindle_vocab_anki)
