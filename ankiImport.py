@@ -14,8 +14,7 @@ from anki.storage import Collection
 # variables to set:
 #################################################
 COLLECTION_PATH = os.path.join(os.path.expanduser('~'), '.local/share/Anki2/User 1/collection.anki2')
-#DECK_NAME = 'My vocab (books, etc)'
-DECK_NAME = 'zzz_testing'
+DECK_NAME = 'My vocab (books, etc)'
 MODEL_NAME = 'Basic (and reversed card)' # or 'Basic'
 AUTOSAVE = False # whether to prompt before saving Anki changes
 
@@ -43,6 +42,7 @@ def importFromCsv(csvPath, preprocessor):
 
     model = col.models.byName(MODEL_NAME) # 'Basic'
     # set the active deck and model type
+    # print(col.decks.all_names_and_ids()) # list of all decks
     deck = col.decks.byName(DECK_NAME)
     col.decks.select(deck['id'])
     col.decks.current()['mid'] = model['id']
@@ -68,7 +68,9 @@ def importFromCsv(csvPath, preprocessor):
             print(fields)
             for i in range(len(fields)):
                 note.fields[i] = fields[i]
-            col.addNote(note)
+            # note: don't use col.addNote (uses a deck ID sourced from model rather than currently selected deck)
+            #   see env/lib/python3.8/site-packages/anki/collection.py:addNote()
+            col.add_note(note, deck['id'])
             createdCards += 1
 
     # save changes
@@ -84,7 +86,6 @@ def importFromCsv(csvPath, preprocessor):
 
 def identityFunc(fields):
     """identify function, returns the provided tuple of fields"""
-    print("in identify function")
     return fields
 
 def preprocessPortuguese(fields):
