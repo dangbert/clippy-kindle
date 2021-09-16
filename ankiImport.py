@@ -14,7 +14,8 @@ from anki.storage import Collection
 # variables to set:
 #################################################
 COLLECTION_PATH = os.path.join(os.path.expanduser('~'), '.local/share/Anki2/User 1/collection.anki2')
-DECK_NAME = 'My vocab (books, etc)'
+#COLLECTION_PATH = os.path.join(os.path.expanduser('~'), 'AnkiTest/DEV 1 (copy)/collection.anki2')
+DECK_NAME = 'My - Vocab'
 MODEL_NAME = 'Basic (and reversed card)' # or 'Basic'
 AUTOSAVE = False # whether to prompt before saving Anki changes
 
@@ -25,13 +26,31 @@ AUTOSAVE = False # whether to prompt before saving Anki changes
 def main():
     # import spanish vocab
     csvPath = os.path.join(os.path.expanduser('~'), 'notes/books/0.COMBINED-spanish.csv')
-    importFromCsv(csvPath, identityFunc)
+    importFromCsv(csvPath, ['world::lang::es'])
 
     # import portuguese vocab
     csvPath = os.path.join(os.path.expanduser('~'), 'notes/books/0.COMBINED-portuguese.csv')
-    importFromCsv(csvPath, preprocessPortuguese)
+    importFromCsv(csvPath, ['world::lang::pt'], preprocessPortuguese)
 
-def importFromCsv(csvPath, preprocessor):
+def identityFunc(fields):
+    """identify function, returns the provided tuple of fields"""
+    return fields
+
+# TODO: create preprocessor do text to speech with google:
+#   (allow user to provide a list of preprocessors to be run in order so this on can run first...)
+#   https://console.cloud.google.com/apis/credentials?project=anki-326018
+
+def preprocessPortuguese(fields):
+    """tweak card fields as desired for portuguese vocab"""
+    return ("{} [P]".format(fields[0]), "{} -> [P]".format(fields[1]))
+
+def importFromCsv(csvPath, tags=[], preprocessor=identityFunc):
+    """
+    Params:
+        csvPath (str): path to csv file to open
+        preprocess (function): function taking a tuple of fields and returning a new tuple
+        tags (str[]): list of tags (if any) to add to created cards
+    """
     if not os.path.isfile(COLLECTION_PATH):
         print("COLLECTION_PATH doesn't exist: '{}'".format(COLLECTION_PATH))
     if not os.path.isfile(csvPath):
@@ -40,10 +59,10 @@ def importFromCsv(csvPath, preprocessor):
     print("Using collection: '{}'".format(COLLECTION_PATH))
     col = Collection(COLLECTION_PATH, log=True) # load anki collection
 
-    model = col.models.byName(MODEL_NAME) # 'Basic'
+    model = col.models.by_name(MODEL_NAME) # 'Basic'
     # set the active deck and model type
     # print(col.decks.all_names_and_ids()) # list of all decks
-    deck = col.decks.byName(DECK_NAME)
+    deck = col.decks.by_name(DECK_NAME)
     col.decks.select(deck['id'])
     col.decks.current()['mid'] = model['id']
 
@@ -68,6 +87,10 @@ def importFromCsv(csvPath, preprocessor):
             print(fields)
             for i in range(len(fields)):
                 note.fields[i] = fields[i]
+
+            for tag in tags:
+                note.add_tag(tag)
+
             # note: don't use col.addNote (uses a deck ID sourced from model rather than currently selected deck)
             #   see env/lib/python3.8/site-packages/anki/collection.py:addNote()
             col.add_note(note, deck['id'])
@@ -83,14 +106,6 @@ def importFromCsv(csvPath, preprocessor):
     else:
         print("no changes saved.")
     print("---------------------------------\n\n")
-
-def identityFunc(fields):
-    """identify function, returns the provided tuple of fields"""
-    return fields
-
-def preprocessPortuguese(fields):
-    """tweak card fields as desired for portuguese vocab"""
-    return ("{} [P]".format(fields[0]), "{} -> [P]".format(fields[1]))
 
 if __name__ == "__main__":
     main()

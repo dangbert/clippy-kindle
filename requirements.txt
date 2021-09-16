@@ -1,5 +1,5 @@
 alabaster==0.7.12
-anki==2.1.44
+anki==2.1.47
 appdirs==1.4.3
 attrs==21.2.0
 Babel==2.9.0
@@ -21,6 +21,7 @@ iniconfig==1.1.1
 ipaddr==2.2.0
 Jinja2==2.11.3
 lockfile==0.12.2
+Markdown==3.3.4
 MarkupSafe==1.1.1
 msgpack==0.6.2
 orjson==3.6.0
@@ -52,6 +53,7 @@ sphinxcontrib-htmlhelp==1.0.3
 sphinxcontrib-jsmath==1.0.1
 sphinxcontrib-qthelp==1.0.3
 sphinxcontrib-serializinghtml==1.1.4
+stringcase==1.2.0
 toml==0.10.2
 urllib3==1.26.6
 webencodings==0.5.1
