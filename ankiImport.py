@@ -15,22 +15,58 @@ from anki.storage import Collection
 #################################################
 COLLECTION_PATH = os.path.join(os.path.expanduser('~'), '.local/share/Anki2/User 1/collection.anki2')
 #COLLECTION_PATH = os.path.join(os.path.expanduser('~'), 'AnkiTest/DEV 1 (copy)/collection.anki2')
-DECK_NAME = 'My - Vocab'
 MODEL_NAME = 'Basic (and reversed card)' # or 'Basic'
 AUTOSAVE = False # whether to prompt before saving Anki changes
-
 #COLLECTION_PATH = os.path.join(os.path.expanduser('~'), 'AnkiTest/User 1/collection.anki2')
-#DECK_NAME = 'Default'
 #################################################
 
-def main():
-    # import spanish vocab
-    csvPath = os.path.join(os.path.expanduser('~'), 'notes/books/0.COMBINED-spanish.csv')
-    importFromCsv(csvPath, ['world::lang::es'])
+#  (and allow either the deck name or ID to be specified)
+DECK_NAME = 'My - Vocab'
+SRC_DIR = os.path.join(os.path.expanduser('~'), 'notes/books/')
 
-    # import portuguese vocab
-    csvPath = os.path.join(os.path.expanduser('~'), 'notes/books/0.COMBINED-portuguese.csv')
-    importFromCsv(csvPath, ['world::lang::pt'], preprocessPortuguese)
+def main():
+    # TODO: pull this information out of settings.json instead:
+    INDEX = [
+        {
+            'csv': '0.COMBINED-spanish.csv',
+            'deck': DECK_NAME,
+            'tags': ['world::lang::es'],
+        },
+        {
+            'csv': '0.COMBINED-portuguese.csv',
+            'deck': DECK_NAME,
+            'tags': ['world::lang::pt'],
+            'preprocess': preprocessPortuguese, # (optional field)...
+        },
+        {
+            'csv': '0.COMBINED-french.csv',
+            'deck': 'My - Lang::My - French',
+            'tags': ['world::lang::fr'],
+        },
+        {
+            'csv': '0.COMBINED-german.csv',
+            'deck': 'My - Lang::My - German',
+            'tags': ['world::lang::de'],
+        },
+        {
+            'csv': '0.COMBINED-greek.csv',
+            'deck': 'My - Lang::My - Greek',
+            'tags': ['world::lang::el'],
+        },
+        {
+            'csv': '0.COMBINED-turkish.csv',
+            'deck': 'My - Lang::My - Turkish',
+            'tags': ['world::lang::tr'],
+        },
+    ]
+
+    for entry in INDEX:
+        csvPath = os.path.join(SRC_DIR, entry['csv'])
+        if not os.path.exists(csvPath):
+            print("skipping non-existent file: {}".format(csvPath))
+            continue
+        preprocess = entry['preprocess'] if 'preprocess' in entry else identityFunc
+        importFromCsv(csvPath, entry['deck'], entry['tags'], preprocess)
 
 def identityFunc(fields):
     """identify function, returns the provided tuple of fields"""
@@ -44,7 +80,7 @@ def preprocessPortuguese(fields):
     """tweak card fields as desired for portuguese vocab"""
     return ("{} [P]".format(fields[0]), "{} -> [P]".format(fields[1]))
 
-def importFromCsv(csvPath, tags=[], preprocessor=identityFunc):
+def importFromCsv(csvPath, deckName, tags=[], preprocessor=identityFunc):
     """
     Params:
         csvPath (str): path to csv file to open
@@ -62,7 +98,7 @@ def importFromCsv(csvPath, tags=[], preprocessor=identityFunc):
     model = col.models.by_name(MODEL_NAME) # 'Basic'
     # set the active deck and model type
     # print(col.decks.all_names_and_ids()) # list of all decks
-    deck = col.decks.by_name(DECK_NAME)
+    deck = col.decks.by_name(deckName)
     col.decks.select(deck['id'])
     col.decks.current()['mid'] = model['id']
 
@@ -99,7 +135,7 @@ def importFromCsv(csvPath, tags=[], preprocessor=identityFunc):
     # save changes
     print("\n\n---------------------------------")
     print("Collection: '{}'".format(COLLECTION_PATH))
-    print("Created {} new cards - '{}' in deck '{}'".format(createdCards, MODEL_NAME, DECK_NAME))
+    print("Created {} new cards - '{}' in deck '{}'".format(createdCards, MODEL_NAME, deckName))
     if AUTOSAVE or input("\nSave changes? (y/n): ".format(createdCards)).lower().strip() in ('y','yes'):
         col.save()
         print("changes saved!")
