@@ -136,11 +136,12 @@ def importFromCsv(csvPath, deckName, tags=[], preprocessor=identityFunc):
     print("\n\n---------------------------------")
     print("Collection: '{}'".format(COLLECTION_PATH))
     print("Created {} new cards - '{}' in deck '{}'".format(createdCards, MODEL_NAME, deckName))
-    if AUTOSAVE or input("\nSave changes? (y/n): ".format(createdCards)).lower().strip() in ('y','yes'):
-        col.save()
-        print("changes saved!")
-    else:
-        print("no changes saved.")
+    if createdCards > 0:
+        if AUTOSAVE or input("\nSave changes? (y/n): ".format(createdCards)).lower().strip() in ('y','yes'):
+            col.save()
+            print("changes saved!")
+        else:
+            print("no changes saved.")
     print("---------------------------------\n\n")
 
 if __name__ == "__main__":
