@@ -15,4 +15,8 @@ pip3 install -r ../requirements.txt
 make html
 # now you can view the docs in your browser:
 firefox build/html/index.html
+
+# generate pdf version of docs:
+make latex
+make pdflatex
 ````
