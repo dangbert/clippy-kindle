@@ -7,6 +7,7 @@ import argparse
 import json
 import csv
 import copy
+import re
 
 from datetime import datetime
 from prettytable import PrettyTable
@@ -192,6 +193,17 @@ def jsonToMarkdown(data, chapters=[], omitNotes=False):
             break
         md += "#{} {}\n".format("#" * len(cIndex), chap["title"])
         cIndex = cIndexAdvance(cIndex, chapters, verbose=True)
+
+    # strip choice utf-8 chars that make xelatex fail (when converting .md -> .pdf later)
+    md = md.encode('utf-8', errors='replace').decode('utf-8', errors="replace")
+    #md = md.replace('\x0b', '?')
+    BAD_PATTERNS = [
+        (r'\x0b', '?'),
+        (r'\x07', ' '),
+        (r'\x08', ' '),
+    ]
+    for (pattern, replacement) in BAD_PATTERNS:
+        md = re.sub(pattern, replacement, md)
     return md
 
 def cIndexAdvance(cIndex, chapters, verbose=False, _tryDeeper=True):
