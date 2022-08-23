@@ -29,33 +29,33 @@ def main():
     INDEX = [
         {
             'csv': '0.COMBINED-spanish.csv',
-            'deck': DECK_NAME,
+            'deck': 'My - Vocab::Spanish',
             'tags': ['world::lang::es'],
         },
         {
             'csv': '0.COMBINED-portuguese.csv',
-            'deck': DECK_NAME,
+            'deck': 'My - Vocab::portuguese',
             'tags': ['world::lang::pt'],
             'preprocess': preprocessPortuguese, # (optional field)...
         },
         {
             'csv': '0.COMBINED-french.csv',
-            'deck': 'My - Lang::My - French',
+            'deck': 'My - Lang::French',
             'tags': ['world::lang::fr'],
         },
         {
             'csv': '0.COMBINED-german.csv',
-            'deck': 'My - Lang::My - German',
+            'deck': 'My - Lang::German',
             'tags': ['world::lang::de'],
         },
         {
             'csv': '0.COMBINED-greek.csv',
-            'deck': 'My - Lang::My - Greek',
+            'deck': 'My - Lang::Greek',
             'tags': ['world::lang::el'],
         },
         {
             'csv': '0.COMBINED-turkish.csv',
-            'deck': 'My - Lang::My - Turkish',
+            'deck': 'My - Lang::Turkish',
             'tags': ['world::lang::tr'],
         },
     ]
@@ -99,6 +99,9 @@ def importFromCsv(csvPath, deckName, tags=[], preprocessor=identityFunc):
     # set the active deck and model type
     # print(col.decks.all_names_and_ids()) # list of all decks
     deck = col.decks.by_name(deckName)
+    if deck is None:
+        print(f"ERROR: deck not found '{deckName}'")
+        exit(1)
     col.decks.select(deck['id'])
     col.decks.current()['mid'] = model['id']
 
