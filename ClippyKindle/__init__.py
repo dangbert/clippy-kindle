@@ -116,7 +116,7 @@ class ClippyKindle:
                         print("<<<\n")
                     section = []
                 else:
-                    # intentially includes empty lines as well (e.g. "") because some notes can intentionally contain an empty line
+                    # intentionally includes empty lines as well (e.g. "") because some notes can intentionally contain an empty line
                     section.append(line)
 
             if len(section) != 0:
