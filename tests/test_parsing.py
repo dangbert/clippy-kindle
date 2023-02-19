@@ -31,3 +31,6 @@ def test_issue1_format():
     test successful parsing of file format in https://github.com/dangbert/clippy-kindle/issues/1
     """
     helperCompare("issue1--My.Clippings")
+
+
+# TODO: add a test that calls clippy.py as shell process?

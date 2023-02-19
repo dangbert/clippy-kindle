@@ -3,9 +3,20 @@ name: ci
 on: push
 
 jobs:
+  # TODO: use setup.py instead for install steps?
+  test_install:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: "3.8.x"
+      - name: install clippy-kindle
+        run: pip install .
+
+  # TODO: try to run unit tests on windows as well?
   unit_test:
     runs-on: ubuntu-22.04
-
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
@@ -32,3 +43,15 @@ jobs:
         run: pip install -r requirements.txt
       - name: black
         run: black . --diff --check
+
+  docs:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: "3.8.x"
+      - name: install dependencies
+        run: pip install -r requirements.txt
+      - name: build docs
+        run: cd docs && make html && make latex && make pdflatex
