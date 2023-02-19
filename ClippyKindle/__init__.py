@@ -16,20 +16,22 @@ NOTE_START = "- Your Note"
 
 # when we try to parse the first line of a highlight, these formats will be tried until one succeeds:
 HIGHLIGHT_FORMATS = [
-    "- Your Highlight {:l} {locType:l} {loc1:d}-{loc2:d} | Added on {date}",            # case like: "- Your Highlight on Location 4749-4749 | Added on Saturday, January 4, 2020 10:20:02 AM"
-    "- Your Highlight {:l} {locType:l} {loc1:d} | Added on {date}",                     # case like: "- Your Highlight on page 7 | Added on Sunday, May 6, 2018 1:42:40 AM"
-    "- Your Highlight {:l} {:l} {:d} | {locType:l} {loc1:d}-{loc2:d} | Added on {date}" # case like: "- Your Highlight on page 22 | location 325-325 | Added on Thursday, 15 June 2017 18:23:21"
+    "- Your Highlight {:l} {locType:l} {loc1:d}-{loc2:d} | Added on {date}",  # case like: "- Your Highlight on Location 4749-4749 | Added on Saturday, January 4, 2020 10:20:02 AM"
+    "- Your Highlight {:l} {locType:l} {loc1:d} | Added on {date}",  # case like: "- Your Highlight on page 7 | Added on Sunday, May 6, 2018 1:42:40 AM"
+    "- Your Highlight {:l} {:l} {:d} | {locType:l} {loc1:d}-{loc2:d} | Added on {date}",  # case like: "- Your Highlight on page 22 | location 325-325 | Added on Thursday, 15 June 2017 18:23:21"
 ]
 BOOKMARK_FORMATS = [
-    "- Your Bookmark {:l} {locType:l} {loc:d} | Added on {date}",            # case like: "- Your Bookmark on Location 604 | Added on Friday, November 25, 2016 12:13:59 AM"
-    "- Your Bookmark {:l} {:l} {:d} | {locType:l} {loc:d} | Added on {date}" # case like: "- Your Bookmark on page 262 | location 3686 | Added on Friday, 23 October 2020 21:24:06"
+    "- Your Bookmark {:l} {locType:l} {loc:d} | Added on {date}",  # case like: "- Your Bookmark on Location 604 | Added on Friday, November 25, 2016 12:13:59 AM"
+    "- Your Bookmark {:l} {:l} {:d} | {locType:l} {loc:d} | Added on {date}",  # case like: "- Your Bookmark on page 262 | location 3686 | Added on Friday, 23 October 2020 21:24:06"
 ]
 NOTE_FORMATS = [
-    "- Your Note {:l} {locType:l} {loc:d} | Added on {date}",                # case like: "- Your Note on page 16 | location 231 | Added on Monday, 7 December 2020 19:19:23"
-    "- Your Note {:l} {:l} {:d} | {locType:l} {loc:d} | Added on {date}",    # case like: "- Your Note on page 16 | location 231 | Added on Monday, 7 December 2020 19:19:23"
+    "- Your Note {:l} {locType:l} {loc:d} | Added on {date}",  # case like: "- Your Note on page 16 | location 231 | Added on Monday, 7 December 2020 19:19:23"
+    "- Your Note {:l} {:l} {:d} | {locType:l} {loc:d} | Added on {date}",  # case like: "- Your Note on page 16 | location 231 | Added on Monday, 7 December 2020 19:19:23"
 ]
 
-DATE_FMT_OUT = "%B %d, %Y %H:%M:%S" # format string for outputting datetime objects
+DATE_FMT_OUT = "%B %d, %Y %H:%M:%S"  # format string for outputting datetime objects
+
+
 ######## helper functions
 def strToDate(dateStr):
     """
@@ -37,11 +39,14 @@ def strToDate(dateStr):
     """
     return datetime.strptime(dateStr, DATE_FMT_OUT)
 
+
 def dateToStr(dateObj):
     """
     converts a provided dateTime object to a string with desired formatting
     """
     return dateObj.strftime(DATE_FMT_OUT)
+
+
 ########
 
 
@@ -94,10 +99,10 @@ class ClippyKindle:
             # TODO: implement, consider actually printing errors to stderr
             pass
 
-        allBooks = {} # dict mapping book title/author string to a Book object
+        allBooks = {}  # dict mapping book title/author string to a Book object
         lineNum = 0
         numErrors = 0
-        with open(fname, 'r') as fh:
+        with open(fname, "r") as fh:
             allLines = fh.readlines()
             section = []
             lineNum = 0
@@ -110,7 +115,11 @@ class ClippyKindle:
                     if res != None:
                         numErrors += 1
                         print(res)
-                        print("problem section in file (lines {} - {}) >>>".format(lineNum - len(section), lineNum))
+                        print(
+                            "problem section in file (lines {} - {}) >>>".format(
+                                lineNum - len(section), lineNum
+                            )
+                        )
                         for line in section:
                             print("  '{}'".format(line))
                         print("<<<\n")
@@ -127,13 +136,16 @@ class ClippyKindle:
                     print("  '{}'".format(line))
                 print("<<<")
         print("\nFinished parsing data from {} books!".format(len(allBooks)))
-        if numErrors != 0 and input("{} error(s) parsing input file. Continue anyway (y/n)? "\
-                .format(numErrors)).lower().strip() in ('n','no'):
+        if numErrors != 0 and input(
+            "{} error(s) parsing input file. Continue anyway (y/n)? ".format(numErrors)
+        ).lower().strip() in ("n", "no"):
             print("Aborting...")
-            print("Feel free to report any issues with parsing your 'My Clippings.txt' file here: https://github.com/dangbert/clippy-kindle/issues/new")
+            print(
+                "Feel free to report any issues with parsing your 'My Clippings.txt' file here: https://github.com/dangbert/clippy-kindle/issues/new"
+            )
             exit(1)
 
-        outData = [] # list of Book objects
+        outData = []  # list of Book objects
         for bookId in allBooks:
             outData.append(allBooks[bookId])
         return outData
@@ -164,10 +176,10 @@ class ClippyKindle:
         if bookId not in allBooks:
             # parse title into title / author
             title, author = bookId, ""
-            if bookId.endswith(')') and bookId.count(' (') >= 1:
-                title = bookId[0 : bookId.rfind('(')-1].strip()
-                author = bookId[bookId.rfind(" (")+2 : bookId.rfind(")")].strip()
-            #print("***** found: '{}' by '{}' *****".format(title, author))
+            if bookId.endswith(")") and bookId.count(" (") >= 1:
+                title = bookId[0 : bookId.rfind("(") - 1].strip()
+                author = bookId[bookId.rfind(" (") + 2 : bookId.rfind(")")].strip()
+            # print("***** found: '{}' by '{}' *****".format(title, author))
             allBooks[bookId] = DataStructures.Book(title, author)
 
         # parse.parse https://stackoverflow.com/a/18620969
@@ -188,11 +200,15 @@ class ClippyKindle:
                 return "ERROR: unable to parse highlight (in unexpected/unsupported format)"
 
             try:
-                date = parser.parse(res['date'])
-                loc2 = res['loc2'] if 'loc2' in res else res['loc1'] # if loc2 not set, use loc1 in its place
-                highlight = DataStructures.Highlight((res['loc1'], loc2), res['locType'].lower(), date, contentLines[2])
+                date = parser.parse(res["date"])
+                loc2 = (
+                    res["loc2"] if "loc2" in res else res["loc1"]
+                )  # if loc2 not set, use loc1 in its place
+                highlight = DataStructures.Highlight(
+                    (res["loc1"], loc2), res["locType"].lower(), date, contentLines[2]
+                )
                 allBooks[bookId].highlights.append(highlight)
-            except ValueError:                  # due to date parsing or casting page/loc as an int
+            except ValueError:  # due to date parsing or casting page/loc as an int
                 return "ERROR: unable to parse date in highlight"
 
         elif contentLines[1].startswith(BOOKMARK_START) and len(contentLines) == 2:
@@ -208,11 +224,15 @@ class ClippyKindle:
                 if res != None:
                     break
             if res == None:
-                return "ERROR: unable to parse bookmark (in unexpected/unsupported format)"
+                return (
+                    "ERROR: unable to parse bookmark (in unexpected/unsupported format)"
+                )
 
             try:
-                date = parser.parse(res['date'])
-                bookmark = DataStructures.Bookmark(res['loc'], res['locType'].lower(), date)
+                date = parser.parse(res["date"])
+                bookmark = DataStructures.Bookmark(
+                    res["loc"], res["locType"].lower(), date
+                )
                 allBooks[bookId].bookmarks.append(bookmark)
             except ValueError:
                 return "ERROR: unable to parse date in bookmark"
@@ -221,7 +241,7 @@ class ClippyKindle:
             # parse note:
             #   example format:
             """
-            Theogony  
+            Theogony
             - Your Note on page 1 | Added on Monday, September 11, 2017 10:56:38 PM
 
             HW: Due Tues
@@ -240,14 +260,21 @@ class ClippyKindle:
                 return "ERROR: unable to parse note (in unexpected/unsupported format)"
 
             try:
-                date = parser.parse(res['date'])
-                content = section[2:] # get just the content lines of the note
+                date = parser.parse(res["date"])
+                content = section[2:]  # get just the content lines of the note
                 # remove first and trailing empty lines if they exist (notes are always preceeded by an empty line)
-                content = content[1:] if content[0] == "" and len(content) > 1 else content
+                content = (
+                    content[1:] if content[0] == "" and len(content) > 1 else content
+                )
                 while len(content) > 1 and content[-1] == "":
                     content = content[:-1]
 
-                note = DataStructures.Note(res['loc'], res['locType'].lower(), date, '\n'.join(str(line) for line in content))
+                note = DataStructures.Note(
+                    res["loc"],
+                    res["locType"].lower(),
+                    date,
+                    "\n".join(str(line) for line in content),
+                )
                 allBooks[bookId].notes.append(note)
             except ValueError:
                 return "ERROR: unable to parse date in note"

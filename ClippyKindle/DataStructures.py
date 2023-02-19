@@ -1,11 +1,13 @@
 from datetime import datetime
 import ClippyKindle
 
+
 class Book:
     """
     Data structure for storing all highlights/notes/bookmarks for a given book.
 
     """
+
     def __init__(self, title, author=""):
         """
         Initialize a Book object.
@@ -16,8 +18,8 @@ class Book:
         """
         self.title = title.strip()
         self.author = author.strip()
-        self.highlights = [] # array of Highlight objects for this book
-        self.notes = []      # array of Note objects for this book
+        self.highlights = []  # array of Highlight objects for this book
+        self.notes = []  # array of Note objects for this book
         self.bookmarks = []  # array of Bookmark objects for this book
 
     def __repr__(self):
@@ -49,9 +51,15 @@ class Book:
         Returns:
             None
         """
-        self.highlights = [obj for obj in self.highlights if obj.date.timestamp() > cutDate.timestamp()]
-        self.notes = [obj for obj in self.notes if obj.date.timestamp() > cutDate.timestamp()]
-        self.bookmarks = [obj for obj in self.bookmarks if obj.date.timestamp() > cutDate.timestamp()]
+        self.highlights = [
+            obj for obj in self.highlights if obj.date.timestamp() > cutDate.timestamp()
+        ]
+        self.notes = [
+            obj for obj in self.notes if obj.date.timestamp() > cutDate.timestamp()
+        ]
+        self.bookmarks = [
+            obj for obj in self.bookmarks if obj.date.timestamp() > cutDate.timestamp()
+        ]
 
     def cutAfter(self, cutDate):
         """
@@ -61,10 +69,15 @@ class Book:
         Returns:
             None
         """
-        self.highlights = [obj for obj in self.highlights if obj.date.timestamp() < cutDate.timestamp()]
-        self.notes = [obj for obj in self.notes if obj.date.timestamp() < cutDate.timestamp()]
-        self.bookmarks = [obj for obj in self.bookmarks if obj.date.timestamp() < cutDate.timestamp()]
-
+        self.highlights = [
+            obj for obj in self.highlights if obj.date.timestamp() < cutDate.timestamp()
+        ]
+        self.notes = [
+            obj for obj in self.notes if obj.date.timestamp() < cutDate.timestamp()
+        ]
+        self.bookmarks = [
+            obj for obj in self.bookmarks if obj.date.timestamp() < cutDate.timestamp()
+        ]
 
     def getDateRange(self):
         """
@@ -78,12 +91,16 @@ class Book:
         latest = datetime.fromtimestamp(0)
         earliest = None
         for obj in self.highlights + self.notes + self.bookmarks:
-            #print(latest.date.timestamp())
-            latest = datetime.fromtimestamp(max(latest.timestamp(), obj.date.timestamp()))
+            # print(latest.date.timestamp())
+            latest = datetime.fromtimestamp(
+                max(latest.timestamp(), obj.date.timestamp())
+            )
             if earliest == None:
                 earliest = obj.date
             else:
-                earliest = datetime.fromtimestamp(min(earliest.timestamp(), obj.date.timestamp()))
+                earliest = datetime.fromtimestamp(
+                    min(earliest.timestamp(), obj.date.timestamp())
+                )
         return (earliest, latest)
 
     def toDict(self):
@@ -95,9 +112,15 @@ class Book:
         items = self.highlights + self.notes + self.bookmarks
         items = sortDictList([item.toDict() for item in items])
         dateRange = self.getDateRange()
-        return {"title": self.title, "author": self.author, 
-                "dateStart": None if dateRange[0] == None else ClippyKindle.dateToStr(dateRange[0]),
-                "dateEnd": ClippyKindle.dateToStr(dateRange[1]), "items": items}
+        return {
+            "title": self.title,
+            "author": self.author,
+            "dateStart": None
+            if dateRange[0] == None
+            else ClippyKindle.dateToStr(dateRange[0]),
+            "dateEnd": ClippyKindle.dateToStr(dateRange[1]),
+            "items": items,
+        }
 
     def toCSV(self):
         """
@@ -105,31 +128,60 @@ class Book:
         Returns:
             Array of lists representing each row (can be written to csv file later).
         """
-        self.sort(removeDups=False) # in case user didn't sort first
-        csvRows = [["highlight", "associated_note", "highlight_loc", "note", "note_loc", "bookmark_loc"]]
+        self.sort(removeDups=False)  # in case user didn't sort first
+        csvRows = [
+            [
+                "highlight",
+                "associated_note",
+                "highlight_loc",
+                "note",
+                "note_loc",
+                "bookmark_loc",
+            ]
+        ]
 
-        nIdx = 0 # running associated note index (for matching highlights with an overlapping note)
-        usedNotes = {} # keys will be the indices in self.notes already associated with a highlight
-        for i in range(0, max(len(self.highlights), len(self.notes), len(self.bookmarks))):
+        nIdx = 0  # running associated note index (for matching highlights with an overlapping note)
+        usedNotes = (
+            {}
+        )  # keys will be the indices in self.notes already associated with a highlight
+        for i in range(
+            0, max(len(self.highlights), len(self.notes), len(self.bookmarks))
+        ):
             curRow = []
             if i < len(self.highlights):
                 ascNote = ""
                 # advance nIdx until its loc passes the current highlight:
-                while nIdx < len(self.notes)-1 and self.notes[nIdx].loc < self.highlights[i].loc:
+                while (
+                    nIdx < len(self.notes) - 1
+                    and self.notes[nIdx].loc < self.highlights[i].loc
+                ):
                     nIdx += 1
-                #print("nIdx = note {}/{} (loc {}),\tcur highlight {}/{} (loc {}-{})".format(nIdx,len(self.notes), self.notes[nIdx].loc, i, len(self.highlights), self.highlights[i].loc, self.highlights[i].locEnd))
-                for offset in [1,0]:   # look at nIdx-1 and nIdx for a match
-                    tmpI = nIdx-offset # index to look at in self.notes
-                    if (0 <= tmpI < len(self.notes) and (tmpI not in usedNotes) and
-                            self.highlights[i].loc <= self.notes[tmpI].loc <= self.highlights[i].locEnd):
+                # print("nIdx = note {}/{} (loc {}),\tcur highlight {}/{} (loc {}-{})".format(nIdx,len(self.notes), self.notes[nIdx].loc, i, len(self.highlights), self.highlights[i].loc, self.highlights[i].locEnd))
+                for offset in [1, 0]:  # look at nIdx-1 and nIdx for a match
+                    tmpI = nIdx - offset  # index to look at in self.notes
+                    if (
+                        0 <= tmpI < len(self.notes)
+                        and (tmpI not in usedNotes)
+                        and self.highlights[i].loc
+                        <= self.notes[tmpI].loc
+                        <= self.highlights[i].locEnd
+                    ):
                         ascNote = self.notes[tmpI].content
                         usedNotes[tmpI] = True
-                        nIdx = tmpI+1           # advance nIdx
+                        nIdx = tmpI + 1  # advance nIdx
                         break
-                curRow += [self.highlights[i].content, ascNote, "{}-{}".format(self.highlights[i].loc, self.highlights[i].locEnd)]
+                curRow += [
+                    self.highlights[i].content,
+                    ascNote,
+                    "{}-{}".format(self.highlights[i].loc, self.highlights[i].locEnd),
+                ]
             else:
                 curRow += ["", "", ""]
-            curRow += [self.notes[i].content, self.notes[i].loc] if i < len(self.notes) else ["", ""]
+            curRow += (
+                [self.notes[i].content, self.notes[i].loc]
+                if i < len(self.notes)
+                else ["", ""]
+            )
             curRow += [self.bookmarks[i].loc] if i < len(self.bookmarks) else [""]
             csvRows.append(curRow)
         return csvRows
@@ -159,6 +211,7 @@ class Book:
 
         if not removeDups:
             return
+
         # now remove duplicates from each list:
         # TODO: store the set of each removed element in a separate json file (along with the final preserved "duplicate")
         #  randomly sample this file to check for false ?positives?
@@ -173,18 +226,25 @@ class Book:
             """
             i = 0
             while True:
-                if i >= len(objList)-2: # stop when i is at the second to last element
+                if (
+                    i >= len(objList) - 2
+                ):  # stop when i is at the second to last element
                     break
                 # compare to bookmark i+1:
-                if objList[i].isDuplicate(objList[i+1]):
-                    #print("deleting: " + str(objList[i]))
-                    del objList[i] # delete the older one (and don't advance i this loop)
+                if objList[i].isDuplicate(objList[i + 1]):
+                    # print("deleting: " + str(objList[i]))
+                    del objList[
+                        i
+                    ]  # delete the older one (and don't advance i this loop)
                 else:
-                    i += 1 
+                    i += 1
             return objList
-        self.highlights = removeDuplicates(self.highlights) # remove duplicate highlights
-        self.notes = removeDuplicates(self.notes)           # remove duplicate notes
-        self.bookmarks = removeDuplicates(self.bookmarks)   # remove duplicate bookmarks
+
+        self.highlights = removeDuplicates(
+            self.highlights
+        )  # remove duplicate highlights
+        self.notes = removeDuplicates(self.notes)  # remove duplicate notes
+        self.bookmarks = removeDuplicates(self.bookmarks)  # remove duplicate bookmarks
 
     @staticmethod
     def fromDict(d):
@@ -200,15 +260,18 @@ class Book:
                 book.notes.append(Note.fromDict(item))
             if item["type"] == "bookmark":
                 book.bookmarks.append(Bookmark.fromDict(item))
-        book.sort(removeDups=False) # don't remove dupes if provided dict contained them
+        book.sort(
+            removeDups=False
+        )  # don't remove dupes if provided dict contained them
         return book
 
 
 # TODO: don't store locType in Highlight/Note/Bookmark classes (just in Book)
 class Highlight:
-    """ 
+    """
     Data structure for storing info about a single highlight
     """
+
     def __init__(self, loc, locType, date, content):
         """
         Highlight class constructor
@@ -221,9 +284,9 @@ class Highlight:
         """
         self.loc = loc[0]
         self.locEnd = loc[1]
-        self.locType = locType # str "page" or "Location" (note that a pdf has pages instead of locations)
-        self.date = date       # date added
-        self.content = content.strip() # content of highlight
+        self.locType = locType  # str "page" or "Location" (note that a pdf has pages instead of locations)
+        self.date = date  # date added
+        self.content = content.strip()  # content of highlight
 
     def __repr__(self):
         """
@@ -232,9 +295,10 @@ class Highlight:
         Returns:
             None
         """
-        return "<Highlight object representing: {} {}-{} from {}, content (preview): '{}'>"\
-                .format(self.locType, self.loc, self.locEnd, self.date, self.content)
-                #.format(self.locType, self.loc[0], self.loc[1], self.date, self.content[:20])
+        return "<Highlight object representing: {} {}-{} from {}, content (preview): '{}'>".format(
+            self.locType, self.loc, self.locEnd, self.date, self.content
+        )
+        # .format(self.locType, self.loc[0], self.loc[1], self.date, self.content[:20])
 
     def isDuplicate(self, other, fuzzyMatch=True):
         """
@@ -252,13 +316,15 @@ class Highlight:
             if self.content in other.content or other.content in self.content:
                 return True
             thisWords, otherWords = self.content.count(" "), other.content.count(" ")
-            if thisWords < 5: # speed things up bc we check this later
+            if thisWords < 5:  # speed things up bc we check this later
                 return False
 
-            sub = GCS(self.content, other.content).strip()  # get longest common substring
+            sub = GCS(
+                self.content, other.content
+            ).strip()  # get longest common substring
             subWords = sub.count(" ")
             # err on the side of false negatives
-            if thisWords >= 5 and len(sub)/len(self.content) >= 0.5:
+            if thisWords >= 5 and len(sub) / len(self.content) >= 0.5:
                 # (self.content is a decent length and over half of it is identical to other.content)
                 return True
         return False
@@ -268,8 +334,14 @@ class Highlight:
         Returns:
             (dict): A dict representing this object.
         """
-        return {"type": "highlight", "loc": self.loc, "locEnd": self.locEnd, "locType": self.locType,
-                "dateStr": ClippyKindle.dateToStr(self.date), "content": self.content}
+        return {
+            "type": "highlight",
+            "loc": self.loc,
+            "locEnd": self.locEnd,
+            "locType": self.locType,
+            "dateStr": ClippyKindle.dateToStr(self.date),
+            "content": self.content,
+        }
 
     @staticmethod
     def fromDict(d):
@@ -277,12 +349,16 @@ class Highlight:
         Returns:
             A new Highlight object populated with the values from a provided dict (created with toDict()).
         """
-        return Highlight((d["loc"], d["locEnd"]), d["locType"],
-                ClippyKindle.strToDate(d["dateStr"]), d["content"])
+        return Highlight(
+            (d["loc"], d["locEnd"]),
+            d["locType"],
+            ClippyKindle.strToDate(d["dateStr"]),
+            d["content"],
+        )
 
 
 class Note:
-    """ 
+    """
     Data structure for storing info about a single note
     """
 
@@ -296,10 +372,12 @@ class Note:
             date (datetime.datetime): date this highlight was made
             content (str): text contents of the note
         """
-        self.loc = loc         # int location (page or location number)
-        self.locType = locType # str "page" or "loc" (note that a pdf has pages instead of loc)
-        self.date = date       # date added
-        self.content = content.strip() # content of note
+        self.loc = loc  # int location (page or location number)
+        self.locType = (
+            locType  # str "page" or "loc" (note that a pdf has pages instead of loc)
+        )
+        self.date = date  # date added
+        self.content = content.strip()  # content of note
 
     def isDuplicate(self, other, fuzzyMatch=True):
         """
@@ -318,13 +396,15 @@ class Note:
             if self.content in other.content or other.content in self.content:
                 return True
             thisWords, otherWords = self.content.count(" "), other.content.count(" ")
-            if thisWords < 6: # speed things up bc we check this later
+            if thisWords < 6:  # speed things up bc we check this later
                 return False
 
-            sub = GCS(self.content, other.content).strip()  # get longest common substring
+            sub = GCS(
+                self.content, other.content
+            ).strip()  # get longest common substring
             subWords = sub.count(" ")
             # err on the side of false negatives
-            if thisWords >= 6 and len(sub)/len(self.content) >= 0.5:
+            if thisWords >= 6 and len(sub) / len(self.content) >= 0.5:
                 # (self.content is a decent length and over half of it is identical to other.content)
                 return True
         return False
@@ -335,17 +415,25 @@ class Note:
         Returns:
             None
         """
-        return "<Note object representing: {} {} from {}, content (preview): '{}'>"\
-                .format(self.locType, self.loc, self.date, self.content[:20])
-                #.format(self.locType, self.loc, self.date, self.content)
+        return (
+            "<Note object representing: {} {} from {}, content (preview): '{}'>".format(
+                self.locType, self.loc, self.date, self.content[:20]
+            )
+        )
+        # .format(self.locType, self.loc, self.date, self.content)
 
     def toDict(self):
         """
         Returns:
             (dict): A dict representing this object
         """
-        return {"type": "note", "loc": self.loc, "locType": self.locType,
-                "dateStr": ClippyKindle.dateToStr(self.date), "content": self.content}
+        return {
+            "type": "note",
+            "loc": self.loc,
+            "locType": self.locType,
+            "dateStr": ClippyKindle.dateToStr(self.date),
+            "content": self.content,
+        }
 
     @staticmethod
     def fromDict(d):
@@ -353,11 +441,13 @@ class Note:
         Returns:
             A new Note object populated with the values from a provided dict (created with toDict())
         """
-        return Note(d["loc"], d["locType"], ClippyKindle.strToDate(d["dateStr"]), d["content"])
+        return Note(
+            d["loc"], d["locType"], ClippyKindle.strToDate(d["dateStr"]), d["content"]
+        )
 
 
 class Bookmark:
-    """ 
+    """
     Data structure for storing info about a single bookmark
     """
 
@@ -371,9 +461,11 @@ class Bookmark:
             date (datetime.datetime): date this highlight was made
         """
         # NOTE: that a pdf has pages instead of loc
-        self.loc = loc         # int location (page or location number)
-        self.locType = locType # str "page" or "loc" (note that a pdf has pages instead of loc)
-        self.date = date       # date added
+        self.loc = loc  # int location (page or location number)
+        self.locType = (
+            locType  # str "page" or "loc" (note that a pdf has pages instead of loc)
+        )
+        self.date = date  # date added
 
     def __repr__(self):
         """
@@ -381,7 +473,9 @@ class Bookmark:
         Returns:
             None
         """
-        return "<Bookmark object representing: {} {} from {}>".format(self.locType, self.loc, self.date)
+        return "<Bookmark object representing: {} {} from {}>".format(
+            self.locType, self.loc, self.date
+        )
 
     def isDuplicate(self, other):
         """
@@ -399,8 +493,13 @@ class Bookmark:
         Returns:
             (dict): Dict representing this object.
         """
-        return {"type": "bookmark", "loc": self.loc, "locType": self.locType,
-                "dateStr": ClippyKindle.dateToStr(self.date)}
+        return {
+            "type": "bookmark",
+            "loc": self.loc,
+            "locType": self.locType,
+            "dateStr": ClippyKindle.dateToStr(self.date),
+        }
+
     @staticmethod
     def fromDict(d):
         """
@@ -425,10 +524,11 @@ def sortDictList(arr):
     for item in arr:
         dateEpoch = ClippyKindle.strToDate(item["dateStr"]).timestamp()
         item["sortKey"] = item["loc"] + float("." + str(int(dateEpoch)))
-    arr.sort(key=lambda item: item["sortKey"]) # https://stackoverflow.com/a/403426
-    for item in arr: # remove sortKeys
+    arr.sort(key=lambda item: item["sortKey"])  # https://stackoverflow.com/a/403426
+    for item in arr:  # remove sortKeys
         item.pop("sortKey")
     return arr
+
 
 def GCS(string1, string2):
     """
@@ -442,11 +542,15 @@ def GCS(string1, string2):
     len1, len2 = len(string1), len(string2)
     for i in range(len1):
         for j in range(len2):
-            lcs_temp=0
-            match=''
-            while ((i+lcs_temp < len1) and (j+lcs_temp<len2) and string1[i+lcs_temp] == string2[j+lcs_temp]):
-                match += string2[j+lcs_temp]
-                lcs_temp+=1
-            if (len(match) > len(answer)):
+            lcs_temp = 0
+            match = ""
+            while (
+                (i + lcs_temp < len1)
+                and (j + lcs_temp < len2)
+                and string1[i + lcs_temp] == string2[j + lcs_temp]
+            ):
+                match += string2[j + lcs_temp]
+                lcs_temp += 1
+            if len(match) > len(answer):
                 answer = match
     return answer
