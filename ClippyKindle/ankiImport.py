@@ -7,27 +7,55 @@
 #   mkdir ~/AnkiTest && anki -b ~/AnkiTest
 #################################################
 
+import sys
 import os
 import csv
 from anki.storage import Collection
+import argparse
 
 # variables to set:
 #################################################
-COLLECTION_PATH = os.path.join(
-    os.path.expanduser("~"), ".local/share/Anki2/User 1/collection.anki2"
-)
-# COLLECTION_PATH = os.path.join(os.path.expanduser('~'), 'AnkiTest/DEV 1 (copy)/collection.anki2')
 MODEL_NAME = "Basic (and reversed card)"  # or 'Basic'
 AUTOSAVE = False  # whether to prompt before saving Anki changes
-# COLLECTION_PATH = os.path.join(os.path.expanduser('~'), 'AnkiTest/User 1/collection.anki2')
 #################################################
 
 #  (and allow either the deck name or ID to be specified)
-DECK_NAME = "My - Vocab"
 SRC_DIR = os.path.join(os.path.expanduser("~"), "notes/books/")
 
 
 def main():
+    parser = argparse.ArgumentParser(
+        description="Creates/imports Anki cards from csv files outputted by marky.py"
+    )
+    parser.add_argument(
+        "-y",
+        "--yes",
+        action="store_true",
+        help="Don't ask for confirmation before creating Anki cards",
+    )
+    # COLLECTION_PATH = os.path.join(os.path.expanduser('~'), 'AnkiTest/User 1/collection.anki2')
+    parser.add_argument(
+        "-ad",
+        "--anki-dir",
+        type=str,
+        help="Path to User's Anki dir",
+        default=os.path.join(os.path.expanduser("~"), ".local/share/Anki2/User 1/"),
+    )
+    # parser.add_argument(
+    #    "-s",
+    #    "--settings",
+    #    type=str,
+    #    help="(string) path to json file containing settings for parsing books (optional)",
+    #    required=True,
+    # )
+
+    # if len(sys.argv) == 1:
+    #     parser.print_help(sys.stderr)
+    #     exit(1)
+    args = parser.parse_args()
+    assert os.path.isdir(args.anki_dir), f"Directory not found: {args.anki_dir}"
+    colPath = os.path.join(args.anki_dir, "collection.anki2")
+
     # TODO: pull this information out of settings.json instead:
     INDEX = [
         {
@@ -69,7 +97,14 @@ def main():
             print("skipping non-existent file: {}".format(csvPath))
             continue
         preprocess = entry["preprocess"] if "preprocess" in entry else identityFunc
-        importFromCsv(csvPath, entry["deck"], entry["tags"], preprocess)
+        importFromCsv(
+            colPath,
+            csvPath,
+            entry["deck"],
+            entry["tags"],
+            preprocess,
+            confirm=not args.yes,
+        )
 
 
 def identityFunc(fields):
@@ -87,20 +122,30 @@ def preprocessPortuguese(fields):
     return ("{} [P]".format(fields[0]), "{} -> [P]".format(fields[1]))
 
 
-def importFromCsv(csvPath, deckName, tags=[], preprocessor=identityFunc):
+def importFromCsv(
+    colPath: str,
+    csvPath: str,
+    deckName: str,
+    tags=[],
+    preprocessor=identityFunc,
+    confirm: bool = True,
+):
     """
     Params:
+        colPath (str): path to user's collection.anki2 file
         csvPath (str): path to csv file to open
         preprocess (function): function taking a tuple of fields and returning a new tuple
         tags (str[]): list of tags (if any) to add to created cards
     """
-    if not os.path.isfile(COLLECTION_PATH):
-        print("COLLECTION_PATH doesn't exist: '{}'".format(COLLECTION_PATH))
+    if not os.path.isfile(colPath):
+        print("COLLECTION_PATH doesn't exist: '{}'".format(colPath))
+        exit(1)
     if not os.path.isfile(csvPath):
         print("csvPath doesn't exist: '{}'".format(csvPath))
+        exit(1)
 
-    print("Using collection: '{}'".format(COLLECTION_PATH))
-    col = Collection(COLLECTION_PATH, log=True)  # load anki collection
+    print("Using collection: '{}'".format(colPath))
+    col = Collection(colPath, log=True)  # load anki collection
 
     model = col.models.by_name(MODEL_NAME)  # 'Basic'
     # set the active deck and model type
@@ -144,7 +189,7 @@ def importFromCsv(csvPath, deckName, tags=[], preprocessor=identityFunc):
 
     # save changes
     print("\n\n---------------------------------")
-    print("Collection: '{}'".format(COLLECTION_PATH))
+    print("Collection: '{}'".format(colPath))
     print(
         "Created {} new cards - '{}' in deck '{}'".format(
             createdCards, MODEL_NAME, deckName

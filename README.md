@@ -172,6 +172,29 @@ Programs I tried that didn't work for me personally:
 
 Note that the code for actually parsing a "My Clippings.txt" file lives in `ClippyKindle/__init__.py`.  Adding support for "My Clippings.txt" files with slightly different formats in the future should be fairly trivial by simply adding more entries into the `FORMATS` arrays at the top of this file.
 
+````bash
+# commands for local dev environment:
+# (note you may prefer to create virtualenv first)
+
+# install clippy-kindle package and dev dependencies
+pip install -e .[dev]
+
+# run unit tests:
+pytest -v
+
+# check code formatting:
+black . --diff --check
+# autoformat code:
+black .
+
+# build docs site:
+cd docs
+make html
+# build docs pdf:
+sudo apt install -y latexmk texlive-latex-extra
+make latex && make latexpdf
+````
+
 Main areas likely to need work in the future:
 * supporting "My Clippings.txt" files where the Kindle is set to a language other than English (this changes the format of the file a bit).
 

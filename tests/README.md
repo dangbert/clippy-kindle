@@ -9,3 +9,5 @@ pytest
 # run tests with verbose output / logging
 pytest -v -s --log-cli-level=DEBUG
 ````
+
+TODO: add simple test that ankiImport.py works (track tgz of minimal Anki user dir)

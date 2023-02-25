@@ -13,6 +13,8 @@ jobs:
           python-version: "3.8.x"
       - name: install clippy-kindle
         run: pip install .
+      - name: ensure CLI scripts can be called
+        run: clippy.py -h && marky.py -h && ankiImport.py -h
 
   # TODO: try to run unit tests on windows as well?
   unit_test:
@@ -22,8 +24,9 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: "3.8.x"
-      - name: install dependencies
-        run: pip install -r requirements.txt
+      - name: install python dependencies
+        #run: pip install -r requirements.txt
+        run: pip install .[dev]
       - name: run pytest
         run: pytest -v
 
@@ -34,13 +37,9 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: "3.8.x"
-      #- name: create virtualenv
-      #  run: |
-      #    pip install virtualenv
-      #    virtualenv .venv
-      #    . .venv/bin/activate
-      - name: install dependencies
-        run: pip install -r requirements.txt
+      - name: install python dependencies
+        #run: pip install -r requirements.txt
+        run: pip install .[dev]
       - name: black
         run: black . --diff --check
 
@@ -51,7 +50,15 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: "3.8.x"
-      - name: install dependencies
-        run: pip install -r requirements.txt
+      - name: install OS dependencies
+        run: sudo apt install -y latexmk texlive-latex-extra # for latexpdf
+      - name: install python dependencies
+        #run: pip install -r requirements.txt
+        run: pip install .[dev]
       - name: build docs
-        run: cd docs && make html && make latex && make pdflatex
+        run: |
+          cd docs
+          make html
+          make latex
+          make latexpdf
+          ls -halt ./build/latex/clippy-kindle.pdf

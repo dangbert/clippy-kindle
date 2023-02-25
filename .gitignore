@@ -3,3 +3,4 @@
 **/.venv/
 out/
 *.egg-info
+build/

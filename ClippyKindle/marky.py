@@ -22,17 +22,18 @@ def main():
     parser.add_argument(
         "json_file",
         type=str,
-        help='(string) path to json file created by clippy.py (e.g. "./collection.json")',
+        help='path to json file created by clippy.py (e.g. "./collection.json")',
     )
     parser.add_argument(
         "out_folder",
         type=str,
-        help='(string) path of folder to output markdown and csv files (e.g. "./output")',
+        help='path of folder to output markdown and csv files (e.g. "./output")',
     )
     parser.add_argument(
+        "-s",
         "--settings",
         type=str,
-        help="(string) path to json file containing settings for parsing books (optional). If no settings is provided then the program will offer to create one.",
+        help="path to json file containing settings for parsing books (optional). If no settings is provided then the program will offer to create one.",
     )
     # https://docs.python.org/dev/library/argparse.html#action
     parser.add_argument(
