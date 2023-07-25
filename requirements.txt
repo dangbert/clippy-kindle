@@ -3,7 +3,7 @@ appdirs==1.4.3
 attrs==21.2.0
 Babel==2.9.1
 CacheControl==0.12.6
-certifi==2019.11.28
+certifi==2023.7.22
 chardet==3.0.4
 charset-normalizer==2.0.3
 colorama==0.4.3
