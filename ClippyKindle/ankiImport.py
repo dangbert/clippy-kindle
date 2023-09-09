@@ -89,6 +89,11 @@ def main():
             "deck": "My - Lang::Turkish",
             "tags": ["world::lang::tr"],
         },
+        {
+            "csv": "0.COMBINED-dutch.csv",
+            "deck": "My - Lang::Dutch",
+            "tags": ["world::lang::nl"],
+        },
     ]
 
     for entry in INDEX:
