@@ -17,8 +17,8 @@ virtualenv env
 source env/bin/activate
 pip3 install -r requirements.txt
 
-# parse clippings and store them in a new file called 'collection.json':
-./clippy.py "My Clippings.txt"
+#  Pass file location of the "My Clippings" file to the clippy script. Remember to account for the file having a space in it by default. Store them in a new file called 'collection.json':
+./clippy.py /Volumes/Kindle/documents/My\ Clippings.txt
 
 # now create a markdown and csv file for each book in your collection:
 mkdir output
