@@ -160,14 +160,19 @@ class ClippyKindle:
             return "ERROR: found section with an unexpected number of lines"
 
         # create book object in allBooks if not already existing for this book
-        bookId = contentLines[0]
+        firstLine = contentLines[0]
+        if ord(firstLine[0]) in [0xfeff, ]:
+            firstLine = firstLine[1:]
+#        print(f'the first character: {hex(ord(firstLine[0]))}.')
+        # parse title into title / author
+        title, author = firstLine, ""
+        if firstLine.endswith(')') and firstLine.count(' (') >= 1:
+            title = firstLine[0 : firstLine.rfind('(')-1].strip()
+            author = firstLine[firstLine.rfind(" (")+2 : firstLine.rfind(")")].strip()
+        
+        bookId = f'{author}-{title}'
         if bookId not in allBooks:
-            # parse title into title / author
-            title, author = bookId, ""
-            if bookId.endswith(')') and bookId.count(' (') >= 1:
-                title = bookId[0 : bookId.rfind('(')-1].strip()
-                author = bookId[bookId.rfind(" (")+2 : bookId.rfind(")")].strip()
-            #print("***** found: '{}' by '{}' *****".format(title, author))
+#            print(f'*****ID: {bookId} found: {title} by {author} *****')
             allBooks[bookId] = DataStructures.Book(title, author)
 
         # parse.parse https://stackoverflow.com/a/18620969

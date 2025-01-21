@@ -38,8 +38,8 @@ class Book:
         returns a string containing the book's title and author (if known)
         e.g. "How to Live on 24 Hours a Day by Arnold Bennett.md"
         """
-        fullName = self.title
-        return fullName + ("" if self.author == "" else " by {}".format(self.author))
+        author = self.author if self.author else 'unknown'
+        return f'{ author }-{ self.title }'
 
     def cutBefore(self, cutDate):
         """
@@ -95,9 +95,9 @@ class Book:
         items = self.highlights + self.notes + self.bookmarks
         items = sortDictList([item.toDict() for item in items])
         dateRange = self.getDateRange()
-        return {"title": self.title, "author": self.author, 
+        return {"title": self.title, "author": self.author,
                 "dateStart": None if dateRange[0] == None else ClippyKindle.dateToStr(dateRange[0]),
-                "dateEnd": ClippyKindle.dateToStr(dateRange[1]), "items": items}
+                "dateEnd": ClippyKindle.dateToStr(dateRange[1]), "annotations": items}
 
     def toCSV(self):
         """
@@ -173,7 +173,7 @@ class Book:
             """
             i = 0
             while True:
-                if i >= len(objList)-2: # stop when i is at the second to last element
+                if i >= len(objList)-1: # stop when i is at the second to last element
                     break
                 # compare to bookmark i+1:
                 if objList[i].isDuplicate(objList[i+1]):
@@ -248,7 +248,10 @@ class Highlight:
             (bool): true or false.
         """
         # duplicates will have similar locations
-        if abs(self.loc - other.loc) <= (1 if self.locType == "page" else 10):
+        loc_gap = abs(self.loc - other.loc)
+        if loc_gap <= 1:
+            return True
+        if loc_gap <= (1 if self.locType == "page" else 10):
             if self.content in other.content or other.content in self.content:
                 return True
             thisWords, otherWords = self.content.count(" "), other.content.count(" ")
@@ -269,7 +272,7 @@ class Highlight:
             (dict): A dict representing this object.
         """
         return {"type": "highlight", "loc": self.loc, "locEnd": self.locEnd, "locType": self.locType,
-                "dateStr": ClippyKindle.dateToStr(self.date), "content": self.content}
+                "dateStr": ClippyKindle.dateToStr(self.date), "text": self.content}
 
     @staticmethod
     def fromDict(d):
@@ -278,7 +281,7 @@ class Highlight:
             A new Highlight object populated with the values from a provided dict (created with toDict()).
         """
         return Highlight((d["loc"], d["locEnd"]), d["locType"],
-                ClippyKindle.strToDate(d["dateStr"]), d["content"])
+                ClippyKindle.strToDate(d["dateStr"]), d["text"])
 
 
 class Note:
@@ -345,7 +348,7 @@ class Note:
             (dict): A dict representing this object
         """
         return {"type": "note", "loc": self.loc, "locType": self.locType,
-                "dateStr": ClippyKindle.dateToStr(self.date), "content": self.content}
+                "dateStr": ClippyKindle.dateToStr(self.date), "text": self.content}
 
     @staticmethod
     def fromDict(d):
@@ -353,7 +356,7 @@ class Note:
         Returns:
             A new Note object populated with the values from a provided dict (created with toDict())
         """
-        return Note(d["loc"], d["locType"], ClippyKindle.strToDate(d["dateStr"]), d["content"])
+        return Note(d["loc"], d["locType"], ClippyKindle.strToDate(d["dateStr"]), d["text"])
 
 
 class Bookmark:
