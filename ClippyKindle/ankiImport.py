@@ -65,7 +65,7 @@ def main():
         },
         {
             "csv": "0.COMBINED-portuguese.csv",
-            "deck": "My - Vocab::portuguese",
+            "deck": "My - Lang::Portuguese",
             "tags": ["world::lang::pt"],
             "preprocess": preprocessPortuguese,  # (optional field)...
         },
