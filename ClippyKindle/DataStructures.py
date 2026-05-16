@@ -115,9 +115,9 @@ class Book:
         return {
             "title": self.title,
             "author": self.author,
-            "dateStart": None
-            if dateRange[0] == None
-            else ClippyKindle.dateToStr(dateRange[0]),
+            "dateStart": (
+                None if dateRange[0] == None else ClippyKindle.dateToStr(dateRange[0])
+            ),
             "dateEnd": ClippyKindle.dateToStr(dateRange[1]),
             "items": items,
         }
