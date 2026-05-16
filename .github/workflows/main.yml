@@ -1,0 +1,64 @@
+name: ci
+
+on: push
+
+jobs:
+  # TODO: use setup.py instead for install steps?
+  test_install:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: "3.8.x"
+      - name: install clippy-kindle
+        run: pip install .
+      - name: ensure CLI scripts can be called
+        run: clippy.py -h && marky.py -h && ankiImport.py -h
+
+  # TODO: try to run unit tests on windows as well?
+  unit_test:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: "3.8.x"
+      - name: install python dependencies
+        #run: pip install -r requirements.txt
+        run: pip install .[dev]
+      - name: run pytest
+        run: pytest -v
+
+  check_format:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: "3.8.x"
+      - name: install python dependencies
+        #run: pip install -r requirements.txt
+        run: pip install .[dev]
+      - name: black
+        run: black . --diff --check
+
+  docs:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: "3.8.x"
+      - name: install OS dependencies
+        run: sudo apt install -y latexmk texlive-latex-extra # for latexpdf
+      - name: install python dependencies
+        #run: pip install -r requirements.txt
+        run: pip install .[dev]
+      - name: build docs
+        run: |
+          cd docs
+          make html
+          make latex
+          make latexpdf
+          ls -halt ./build/latex/clippy-kindle.pdf

@@ -13,9 +13,10 @@
 ### How to use:
 ````bash
 # install python requirements:
-virtualenv env
-source env/bin/activate
-pip3 install -r requirements.txt
+python3 -m venv .venv
+
+source .venv/bin/activate
+pip3 install -e .[dev]
 
 # parse clippings and store them in a new file called 'collection.json':
 ./clippy.py "My Clippings.txt"
@@ -23,6 +24,13 @@ pip3 install -r requirements.txt
 # now create a markdown and csv file for each book in your collection:
 mkdir output
 ./marky.py collection.json output/
+
+
+# optionally for development you can install dev deps
+# install with dev deps
+pip3 install -e .[dev]
+# optionally run tests
+pytest
 ````
 
 * Example program output:
@@ -171,6 +179,29 @@ Programs I tried that didn't work for me personally:
 [See documentation for this code repository here.](https://clippy-kindle.readthedocs.io/en/latest/?badge=latest)
 
 Note that the code for actually parsing a "My Clippings.txt" file lives in `ClippyKindle/__init__.py`.  Adding support for "My Clippings.txt" files with slightly different formats in the future should be fairly trivial by simply adding more entries into the `FORMATS` arrays at the top of this file.
+
+````bash
+# commands for local dev environment:
+# (note you may prefer to create virtualenv first)
+
+# install clippy-kindle package and dev dependencies
+pip install -e .[dev]
+
+# run unit tests:
+pytest -v
+
+# check code formatting:
+black . --diff --check
+# autoformat code:
+black .
+
+# build docs site:
+cd docs
+make html
+# build docs pdf:
+sudo apt install -y latexmk texlive-latex-extra
+make latex && make latexpdf
+````
 
 Main areas likely to need work in the future:
 * supporting "My Clippings.txt" files where the Kindle is set to a language other than English (this changes the format of the file a bit).

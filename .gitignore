@@ -1,2 +1,6 @@
-__pycache__/
-env/
+**/__pycache__/
+**/env/
+**/.venv/
+out/
+*.egg-info
+build/
