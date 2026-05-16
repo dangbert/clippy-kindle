@@ -158,9 +158,9 @@ def main():
                 print("created: '{}'".format(outPathCSV))
                 # update last outputted timestamp
                 if args.update_outdate:
-                    settings[groupName]["books"][i][
-                        "lastOutputDate"
-                    ] = ClippyKindle.dateToStr(lastDate)
+                    settings[groupName]["books"][i]["lastOutputDate"] = (
+                        ClippyKindle.dateToStr(lastDate)
+                    )
             if combinedCSV != "":
                 combinePath = os.path.join(args.out_folder, combinedCSV)
                 existed = os.path.exists(combinePath)
@@ -169,9 +169,9 @@ def main():
                         csvStr if not existed else csvStr[1:]
                     )  # remove header if file already existed
                 if args.update_outdate:
-                    settings[groupName]["books"][i][
-                        "lastOutputDate"
-                    ] = ClippyKindle.dateToStr(lastDate)
+                    settings[groupName]["books"][i]["lastOutputDate"] = (
+                        ClippyKindle.dateToStr(lastDate)
+                    )
                 if not existed:
                     print(
                         "created: '{}'".format(combinePath)

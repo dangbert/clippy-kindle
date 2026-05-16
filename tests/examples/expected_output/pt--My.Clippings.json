@@ -1,0 +1,65 @@
+[
+  {
+    "title": "A coragem de Ser Imperfeito - Brene Brown",
+    "author": "Brené Brown",
+    "dateStart": "December 19, 2001 23:36:53",
+    "dateEnd": "December 19, 2001 23:36:53",
+    "items": [
+      {
+        "type": "highlight",
+        "loc": 11,
+        "locEnd": 12,
+        "locType": "posição",
+        "dateStr": "December 19, 2001 23:36:53",
+        "content": "paradoxos da seguinte equação: nos tornamos fortes ao aceitar a nossa vulnerabilidade, e somos mais ousados quando admitimos nossos medos."
+      }
+    ]
+  },
+  {
+    "title": "Tao-te ching",
+    "author": "Lao-Tsé",
+    "dateStart": "May 04, 2026 04:07:10",
+    "dateEnd": "May 04, 2026 04:07:10",
+    "items": [
+      {
+        "type": "highlight",
+        "loc": 2012,
+        "locEnd": 2013,
+        "locType": "posição",
+        "dateStr": "May 04, 2026 04:07:10",
+        "content": "<Você alcançou o limite de recortes para este item>"
+      }
+    ]
+  },
+  {
+    "title": "Compliance ESG",
+    "author": "",
+    "dateStart": "February 01, 2026 12:33:10",
+    "dateEnd": "February 01, 2026 12:33:10",
+    "items": [
+      {
+        "type": "highlight",
+        "loc": 130,
+        "locEnd": 130,
+        "locType": "posição",
+        "dateStr": "February 01, 2026 12:33:10",
+        "content": "paz como seu legítimo representante.\nPor fim, o direito fundamental de acesso à água potável,"
+      }
+    ]
+  },
+  {
+    "title": "Antifrágil (Nova edição)",
+    "author": "Taleb, Nassim Nicholas",
+    "dateStart": "November 01, 2025 23:11:10",
+    "dateEnd": "November 01, 2025 23:11:10",
+    "items": [
+      {
+        "type": "note",
+        "loc": 1690,
+        "locType": "posição",
+        "dateStr": "November 01, 2025 23:11:10",
+        "content": "PÉssimo"
+      }
+    ]
+  }
+]
