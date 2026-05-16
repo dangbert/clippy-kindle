@@ -13,9 +13,10 @@
 ### How to use:
 ````bash
 # install python requirements:
-virtualenv env
-source env/bin/activate
-pip3 install -r requirements.txt
+python3 -m venv .venv
+
+source .venv/bin/activate
+pip3 install -e .[dev]
 
 # parse clippings and store them in a new file called 'collection.json':
 ./clippy.py "My Clippings.txt"
@@ -23,6 +24,13 @@ pip3 install -r requirements.txt
 # now create a markdown and csv file for each book in your collection:
 mkdir output
 ./marky.py collection.json output/
+
+
+# optionally for development you can install dev deps
+# install with dev deps
+pip3 install -e .[dev]
+# optionally run tests
+pytest
 ````
 
 * Example program output:
