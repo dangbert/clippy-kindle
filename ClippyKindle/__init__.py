@@ -97,7 +97,7 @@ class ClippyKindle:
         allBooks = {} # dict mapping book title/author string to a Book object
         lineNum = 0
         numErrors = 0
-        with open(fname, 'r') as fh:
+        with open(fname, 'r', encoding='utf-8') as fh:
             allLines = fh.readlines()
             section = []
             lineNum = 0
