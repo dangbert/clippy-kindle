@@ -75,15 +75,16 @@ class Book:
             (tuple of datetime.datetime objects) first object in tuple is the earliest date, second is the latest
             (if book has no items, earliest will be returned as None, and the latest as the datetimes at epoch 0)
         """
-        latest = datetime.fromtimestamp(0)
+        latest = None
         earliest = None
         for obj in self.highlights + self.notes + self.bookmarks:
             #print(latest.date.timestamp())
-            latest = datetime.fromtimestamp(max(latest.timestamp(), obj.date.timestamp()))
-            if earliest == None:
+            if latest is None or obj.date > latest:
+                latest = obj.date
+            if earliest is None or obj.date < earliest:
                 earliest = obj.date
-            else:
-                earliest = datetime.fromtimestamp(min(earliest.timestamp(), obj.date.timestamp()))
+        if latest is None:
+            latest = datetime.fromtimestamp(0)
         return (earliest, latest)
 
     def toDict(self):
